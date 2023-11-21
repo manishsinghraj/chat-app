@@ -754,3 +754,341 @@ findOne({ email }): This method is used to find a single document in the MongoDB
 
 8. **`countDocuments(conditions)`:**
    Counts the number of documents in the collection that match the specified conditions.
+
+<hr>
+
+Lets Create JWT Token
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+
+    try {
+
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+module.exports = { registerUser }
+
+```
+
+`res.status(200).json({_id : user._id, name, email, token})  y do i need to send token?`
+
+Sending a token as part of the response is a common practice in authentication mechanisms, particularly when a user registers or logs in. Here are some reasons why you might want to include the token in the response:
+
+Authentication and Authorization:
+
+The token serves as a form of authentication. Once the user successfully registers, the token can be used for subsequent requests to authenticate and authorize the user. This is commonly done by including the token in the headers of future requests.
+Stateless Communication:
+
+Tokens allow for stateless communication between the client and the server. Instead of relying on server-side sessions to track user state, the token contains the necessary information to verify the user's identity.
+Reduced Server Load:
+
+With tokens, the server doesn't need to store user sessions, which can reduce the load on the server, especially in a distributed or stateless architecture.
+Secure Information Exchange:
+
+Tokens can be designed to contain specific information about the user (claims) and can be encrypted to ensure the integrity and confidentiality of the information.
+Consistent User Experience:
+
+Including the token in the response allows the client to store it locally (e.g., in a cookie or local storage) and automatically include it in subsequent requests. This helps maintain a consistent user experience without requiring the user to reauthenticate with every request.
+
+`but we arent showing this token to actual user right? so in realworld and all the application,token decides whether the user is authenticated or should be kept as authenticated unless token expires correct?`
+
+Yes, that's correct. In many real-world applications, tokens play a crucial role in determining whether a user is authenticated. Here's a breakdown of how it typically works:
+
+Authentication:
+
+When a user logs in or is otherwise authenticated, the server generates a token.
+This token is then sent to the client, and the client stores it securely (e.g., in a cookie, local storage, or another secure storage mechanism).
+Authorization:
+
+For each subsequent request to a protected resource or action, the client includes the token in the request headers.
+The server verifies the token to determine the user's identity and whether they have the necessary permissions (authorization) to perform the requested action.
+Token Expiration:
+
+Tokens often have an expiration time (specified in the token itself). If a token expires, the user is required to reauthenticate by obtaining a new token.
+Secure Communication:
+
+The use of tokens allows for stateless and secure communication between the client and server. The server doesn't need to store session information, making it suitable for scalable and distributed architectures.
+Revocation and Renewal:
+
+In some systems, there may be mechanisms for token revocation (e.g., if a user logs out or if a token is compromised). Additionally, some systems implement token renewal to provide a seamless experience for the user without requiring frequent logins.
+By relying on tokens, applications can implement secure and scalable authentication and authorization mechanisms, and they can also benefit from the advantages of stateless communication. Keep in mind that the specifics may vary based on the authentication and authorization strategy chosen for a particular application.
+
+
+<hr>
+
+Lets create loginUser
+
+its simple
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        let user = await userModel.findOne({ email });
+
+        if (!user) return res.status(400).json("Invalid user or password!1");
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+
+        if (!isValidPassword) return res.status(400).json("Invalid user or password!2");
+
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name: user.name, email, token });
+    } catch (error) {
+        console.log("Error during Login User : ", error);
+        res.status(500).json(error)
+    }
+
+}
+
+module.exports = { registerUser, loginUser }
+
+```
+Also changes made in useRoute.js
+
+```js 
+//userRoute.js
+
+const express = require('express');
+const router = express.Router();
+const { registerUser, loginUser } = require('../Controllers/userController');
+
+router.post("/register", registerUser);
+router.post("/login", loginUser)
+
+module.exports = router;
+
+```
+
+
+Now lets work on getting single and all user which will be helpful for this project requirement frontend.
+
+```js
+//userRoute.js
+
+const express = require('express');
+const router = express.Router();
+const { registerUser, loginUser, findUser, getUsers } = require('../Controllers/userController');
+
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.get("/findUser/:userId", findUser);
+router.get("/getUsers", getUsers);
+
+module.exports = router;
+
+```
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+
+    try {
+
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        let user = await userModel.findOne({ email });
+
+        if (!user) return res.status(400).json("Invalid user or password!1");
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+
+        if (!isValidPassword) return res.status(400).json("Invalid user or password!2");
+
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name: user.name, email, token });
+    } catch (error) {
+        console.log("Error during Login User : ", error);
+        res.status(500).json(error)
+    }
+
+}
+
+
+const findUser = async (req, res) => {
+
+    try {
+        const userId = req.params.userId;
+
+        const user = await userModel.findById(userId);
+        if (!user) return res.status(200).json("cannot find user")
+        return res.status(200).json(user);
+
+    } catch (error) {
+        console.log("Error during Finding User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const getUsers = async (req, res) => {
+
+    try {
+        const users = await userModel.find();
+        if (!users) return res.status(200).json("cannot get all users")
+        return res.status(200).json(users);
+
+    } catch (error) {
+        console.log("Error during getting all Users : ", error);
+        res.status(500).json(error)
+    }
+}
+
+module.exports = { registerUser, loginUser, findUser, getUsers }
+
+```
+
+
+
+
+
