@@ -1,0 +1,28 @@
+@import url('https://fonts.cdnfonts.com/css/euclid-circular-a');
+
+
+body {
+    background: rgb(0, 30, 43);
+    font-family: 'Euclid Circular A', sans-serif;
+    color: #fff;
+    height: 100vh;
+}
+
+.myCustomNavbar {
+    background: rgb(0, 20, 23);
+    height: 3.75rem;
+    border-top: 2px solid #00ed64;
+    border-bottom: 2px solid #00ed64;
+}
+
+.navBarHeading {
+    color: #fff;
+}
+
+.form {
+    background: rgb(0, 30, 43);
+    box-shadow: 22px 18px 10px 0px #00ed64;
+    border-radius: 10px;
+    color: #ffffff;
+    padding: 0 25px 35px;
+}

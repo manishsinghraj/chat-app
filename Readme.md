@@ -1088,7 +1088,335 @@ module.exports = { registerUser, loginUser, findUser, getUsers }
 
 ```
 
+<hr>
 
 
+## Client Side coding
+
+`npm create vite@latest . `
 
 
+`npm i react-router-dom`
+
+react-router-dom
+react-router-dom is a library for implementing routing in React applications. Routing allows you to navigate between different components in your application based on the URL. This library is particularly useful for creating single-page applications (SPAs) where you want to update the content of the page without a full page reload.
+
+
+```js
+//App.jsx
+
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path='/' element={<Chat />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='*' element={<Navigate to='/' />} />
+      </Routes >
+    </>
+  )
+}
+
+export default App
+
+
+```
+Explanation:
+Routes and Route Components:
+
+The Routes component is a container for multiple Route components.
+Route components define the mapping between a URL path and a React component to render.
+In your code, you have three routes:
+'/' path maps to the Chat component.
+'/login' path maps to the Login component.
+'/register' path maps to the Register component.
+Navigate Component:
+
+The Navigate component is used to perform client-side navigation. In this case, if the user visits any route that is not explicitly defined ('*'), they will be redirected to the '/' (Chat) route.
+
+```js 
+// main.jsx
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { BrowserRouter } from 'react-router-dom' //Import
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter> //Imp change to wrap it 
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+)
+
+```
+Explanation:
+React.StrictMode:
+
+Wraps your entire app in strict mode. It helps catch common bugs and can help you write more reliable components.
+BrowserRouter:
+
+Provides the routing infrastructure for your app. It enables the use of the <Routes> and <Route> components in your application.
+ReactDOM.createRoot:
+
+It is used to create a root for the React application. It's part of the new concurrent rendering API introduced in React.
+React Router-DOM:
+React Router-DOM:
+
+react-router-dom is a library for declarative routing in React applications.
+It enables navigation among views of various components in a React Application, allows changing the browser URL, and keeps UI in sync with the URL.
+Components:
+
+<BrowserRouter>: Provides the context for routing in your application.
+<Routes>: Acts as a switch statement for rendering different components based on the current URL.
+<Route>: Defines a route mapping between a URL path and a component to render.
+<Navigate>: Used for navigation and redirection.
+This setup allows you to create a multi-page React application with different components rendered based on the URL. The react-router-dom library helps manage client-side navigation and keeps your UI in sync with the URL.
+
+
+Bootstrap config -pending to write
+
+Added container 
+
+```js 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css'; //Import
+import { Container } from 'react-bootstrap' //Import
+
+function App() {
+  return (
+    <>
+      <Container> //Changes made
+        <Routes>
+          <Route path='/' element={<Chat />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='*' element={<Navigate to='/' />} />
+        </Routes >
+      </Container>
+    </>
+  )
+}
+
+export default App
+
+```
+NavBar
+
+```js 
+import React from 'react'
+import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+
+export const NavBar = () => {
+    return (
+        <>
+            <Navbar className="mb-4 myCustomNavbar">
+                <Container>
+                    <Link to='/' className='text-decoration-none'>
+                        <h2 className='pulseChatHeading'>
+                            PulseChat
+                        </h2>
+                    </Link>
+                    <span>Welcome, Manish Singh! 😎</span>
+                    <Nav>
+                        <Stack direction='horizontal' gap={3}>
+                            <Link to='/login' className='text-decoration-none'>
+                                <h6 className='pulseChatHeading '>
+                                    Login
+                                </h6>
+                            </Link>
+                            <Link to='/register' className='text-decoration-none'>
+                                <h6 className='pulseChatHeading'>
+                                    Register
+                                </h6>
+                            </Link>
+                        </Stack>
+                    </Nav>
+                </Container>
+            </Navbar>
+        </>
+    )
+}
+
+```
+
+Import Statements:
+
+react-bootstrap: Importing components from the React Bootstrap library for styling and layout.
+Link: From react-router-dom for navigation within your React app.
+
+Navbar Structure:
+Navbar: The main navigation container.
+Container: Wraps the content inside the Navbar to control the width and provide spacing.
+
+Logo (PulseChat):
+Link to='/': Creates a link to the home page. The text-decoration-none class removes the default underline.
+h2 className='pulseChatHeading': Heading with a class for styling. You can define styles for pulseChatHeading in your CSS.
+
+
+Navigation Links:
+Nav: The container for navigation links.
+Stack direction='horizontal' gap={3}: A horizontal stack to arrange login and register links with a gap of 3.
+
+Login and Register Links:
+Link to='/login': Creates a link to the login page with a styled heading.
+Link to='/register': Creates a link to the register page with a styled heading.
+
+
+Lets start working on crfeating registration Page,login Page
+
+```js 
+//Register.jsx
+import React, { useEffect } from "react";
+import { Form, Button, Stack, Row, Col } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+         document.body.style = '';
+    //   document.body.style.backgroundImage = '';
+    //   document.body.style.backgroundSize = '';
+    //   document.body.style.backgroundRepeat = '';
+    //   document.body.style.backgroundPosition = '';
+    //   document.body.style.backgroundColor = '';
+    };
+  }, []);
+
+  return (
+    <Form className="mt-md-5">
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              Register
+            </Button>
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+//Without Responsive
+
+// import React, { useEffect } from "react"
+// import { Container, Card, Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+// import backgroundImage from '../assets/messageBG.jpg'
+
+// export const Register = () => {
+
+//   useEffect(() => {
+//     document.body.style.backgroundImage = `url(${backgroundImage})`;
+//     document.body.style.backgroundSize = 'contain';
+//     document.body.style.backgroundRepeat = 'no-repeat';
+//     document.body.style.backgroundPosition = 'right';
+//     document.body.style.backgroundColor = '#ffff';
+//     return () => {
+//       document.body.style.backgroundImage = '';
+//       document.body.style.backgroundSize = '';
+//       document.body.style.backgroundRepeat = '';
+//       document.body.style.backgroundPosition = '';
+//       document.body.style.backgroundColor = '#ffff';
+//     };
+//   }, [])
+
+
+//   return (
+//     <>
+//       <Form className="mt-5">
+//         <Row style={{ justifyContent: "left" }}>
+//           <Col className="form" xs={6}>
+//             <Stack gap={2}>
+//               <h2 style={{ padding: '20px', textAlign: "center" }}>Register</h2>
+//               <Form.Label >Name</Form.Label>
+//               <Form.Control type="text" placeholder="Name"></Form.Control>
+//               <Form.Label>Email</Form.Label>
+//               <Form.Control type="email" placeholder="Email"></Form.Control>
+//               <Form.Label>Password</Form.Label>
+//               <Form.Control type="password" placeholder="Password"></Form.Control>
+//               <Button className="mt-3 mb-3" variant="primary" type="submit">Register</Button>
+//               {/* <Alert variant="danger"><p>An error occured!</p></Alert> */}
+//             </Stack>
+//           </Col>
+//         </Row>
+//       </Form>
+//     </>
+//   )
+// }
+
+```
+
+
+```js 
+//Login
+
+import React, { useEffect } from "react"
+import { Container, Card, Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+import backgroundImage from '../assets/messageBG2.jpg'
+
+export const Login = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'left';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, [])
+
+
+  return (
+    <>
+      <Form className="mt-5">
+        <Row style={{ justifyContent: "right" }}>
+          <Col className="form" xs={6} >
+            <Stack gap={2}>
+              <h2 style={{ padding: '20px', textAlign: "center" }}>Login</h2>
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" placeholder="Email"></Form.Control>
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" placeholder="Password"></Form.Control>
+              <Button className="mt-3 mb-3" variant="primary" type="submit">Login</Button>
+              {/* <Alert variant="danger"><p>An error occured!</p></Alert> */}
+            </Stack>
+          </Col>
+        </Row>
+      </Form>
+    </>
+  )
+}
+
+```
+
+
+Now lets create userAuthContext to pass the data, required by the components
