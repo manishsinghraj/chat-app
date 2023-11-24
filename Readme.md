@@ -2055,3 +2055,443 @@ export const Login = () => {
 
 ```
 
+
+Now we need to work on Main part that is Chat.
+
+3 things in client side:
+create Chat(new Chat)
+getlistofChat in UI (stack)
+findChat
+
+![Alt text](image.png);
+
+
+
+ServerSide changes:
+need to create new Model for chat.
+
+```js 
+//chatModel.js
+
+const mongoose = require("mongoose");
+
+const chatSchema = new mongoose.Schema({
+    members: Array,
+}, {
+    timeStamps: true
+});
+
+
+const chatModel = mongoose.model("chat", chatSchema);
+
+module.exports = chatModel;
+
+```
+
+and in controller we need to have chatController that createschat.
+//createChat
+//getUserChats
+//getChat
+
+```js 
+//chatController.js 
+const chatModel = require('../Models/chatModel')
+
+//createChat
+//getUserChats
+//getChat
+
+
+const createChat = async (req, res) => {
+    const { firstId, secondId } = req.body;
+    try {
+
+        const chat = await chatModel.findOne({
+            members: { $all: [firstId, secondId] }
+        });
+
+        if (chat) return res.status(200).json(chat);
+
+        const newChat = new chatModel({
+            members: [firstId, secondId],
+        });
+
+        const response = await newChat.save();
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+
+const getUserChats = async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const chats = await chatModel.find({
+            members: { $in: [userId] },
+        })
+
+        if (chats) return res.status(200).json(chats);
+
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+
+const getChat = async (req, res) => {
+    const { firstId, secondId } = req.params;
+
+    try {
+        const chat = await chatModel.findOne({
+            members: { $all: [firstId, secondId] }
+        });
+
+        res.status(200).json(chat);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+module.exports = { createChat, getUserChats, getChat }
+```
+
+
+```js 
+//chatRoutes.js
+
+const express = require("express");
+const router = express.Router();
+const { createChat, getUserChats, getChat } = require("../Controllers/chatController");
+
+
+router.post("/", createChat);
+router.get("/:userId", getUserChats);
+router.get("/get/:firstId/:secondId", getChat);
+
+module.exports = router;
+```
+
+```js 
+//server.js
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const mongoose = require("mongoose");
+const userRouter = require("./Routes/userRoute.js");
+const chatRouter = require("./Routes/chatRoute.js");
+const dotenv = require('dotenv');
+dotenv.config();
+
+const port = process.env.PORT || 5001;
+const uri = process.env.ATLAS_URI;
+
+app.use(cors());
+app.use(express.json());
+app.use("/api/user", userRouter);
+app.use("/api/chats", chatRouter); //This Change
+
+
+app.listen(port, (req, res) => {
+    console.log(`Server running on port ${port}`);
+});
+
+
+mongoose.connect(uri).then(() => {
+    console.log("MongoDB connection established")
+}).catch((error) => {
+    console.log("MongoDb Connection Failed:" + error.message)
+})
+
+```
+
+
+Now we need to work on messages
+//createMesage
+//getMessages
+
+```js
+// messageModel.js 
+const mongoose = require("mongoose");
+
+const messageSchema = new mongoose.Schema({
+    chatId: String,
+    senderId: String,
+    text: String
+}, {
+    timestamps: true
+});
+
+const messageModel = mongoose.model("message", messageSchema);
+
+module.exports = messageModel;
+```
+
+```js
+// messageController.js 
+const messageModel = require("../Models/messageModel");
+
+//createMesage
+//getMessages
+
+const createMessage = async (req, res) => {
+    const { chatId, senderId, text } = req.body;
+
+    try {
+        const message = new messageModel({
+            chatId, senderId, text
+        });
+
+        const response = await message.save();
+
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+const getMessages = async (req, res) => {
+    const { chatId } = req.params;
+
+    try {
+        const message = await messageModel.find({ chatId });
+        res.status(200).json(message);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+module.exports = { createMessage, getMessages };
+```
+
+
+```js
+// message.Route.js 
+
+const express = require('express');
+const router = express.Router();
+const { createMessage, getMessages } = require('../Controllers/messageController');
+
+router.post("/", createMessage);
+router.get("/:chatId", getMessages);
+
+module.exports = router;
+
+```
+
+
+```js
+//index.js
+app.use("/api/message", messageRouter); 
+```
+
+
+
+Now we can work on creating fetch api in client Folder services.js
+
+
+```js 
+//services.js
+export const baseUrl = "http://localhost:5002/api";
+
+export const postRequest = async (url, body) => {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+
+    return data;
+};
+
+
+export const getRequest = async (url) => {
+
+    const response = await fetch(url);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+
+    return data;
+
+}
+```
+
+
+```js 
+//ChatContext.jsx
+import { createContext, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                isUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                isUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+```JS 
+//App.jsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container } from 'react-bootstrap'
+import { NavBar } from './components/NavBar';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
+import { ChatContextProvider } from './context/ChatContext';
+
+function App() {
+  const { user } = useContext(AuthContext)
+
+  return (
+    <>
+      <ChatContextProvider user={user}> //Added this
+        <NavBar></NavBar>
+        <Container>
+          <Routes>
+            <Route path='/' element={user ? <Chat /> : <Login />} />
+            <Route path='/login' element={user ? <Chat /> : <Login />} />
+            <Route path='/register' element={user ? <Chat /> : <Register />} />
+            <Route path='*' element={<Navigate to='/' />} />
+          </Routes >
+        </Container>
+      </ChatContextProvider>
+    </>
+  )
+}
+
+export default App
+
+```
+
+
+Now lets make list of chatUsers
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        {userChats?.length < 1 ? null :
+          <Stack direction="horizontal" gap={3} className="align-item-start">
+            <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+              {isUserChatsLoading && <p>Loading Chats..</p>}
+              {userChats?.map((chat, index) => {
+                return (
+                  <div key={index}>
+                    <UserChats chat={chat} user={user}></UserChats>
+                  </div>
+                )
+              })}
+            </Stack>
+            <p>chatBox</p>
+          </Stack>
+        }
+      </Container>
+    </>
+  )
+}
+
+```
+
+```js 
+//UserChats.jsx
+
+import React from 'react'
+
+export const UserChats = ({chat, user}) => {
+  return (
+    <div>UserChats</div>
+  )
+}
+
+```
+
+
+So if youasaperson is logged-in,you would like to see other ids in list of userChats

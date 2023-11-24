@@ -4,6 +4,8 @@ const cors = require('cors');
 const app = express();
 const mongoose = require("mongoose");
 const userRouter = require("./Routes/userRoute.js");
+const chatRouter = require("./Routes/chatRoute.js");
+const messageRouter = require("./Routes/messageRoute.js");
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -13,11 +15,9 @@ const uri = process.env.ATLAS_URI;
 app.use(cors());
 app.use(express.json());
 app.use("/api/user", userRouter);
-
-//CRUD
-app.get("/", (req, res) => {
-    res.json({ message: "hi" });
-});
+app.use("/api/chats", chatRouter);
+app.use("/api/chats", chatRouter);
+app.use("/api/message", messageRouter);
 
 
 app.listen(port, (req, res) => {

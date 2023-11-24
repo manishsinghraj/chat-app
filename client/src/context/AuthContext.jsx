@@ -91,7 +91,7 @@ export const AuthContextProvider = ({ children }) => {
         setRegisterInfo(register);
         setLoginInfo(login);
     }
-    // *********************************************************************************
+
 
     //*****************************************************
     // LocalStorage 
@@ -102,7 +102,7 @@ export const AuthContextProvider = ({ children }) => {
     }, []);
 
 
-
+    //*****************************************************
 
 
     console.log("registerInfo", registerInfo);
