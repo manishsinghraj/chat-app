@@ -57,11 +57,11 @@ const loginUser = async (req, res) => {
 
         let user = await userModel.findOne({ email });
 
-        if (!user) return res.status(400).json("Invalid user or password!1");
+        if (!user) return res.status(400).json("Invalid user or password!");
 
         const isValidPassword = await bcrypt.compare(password, user.password);
 
-        if (!isValidPassword) return res.status(400).json("Invalid user or password!2");
+        if (!isValidPassword) return res.status(400).json("Invalid user or password!");
 
         const token = createJWTToken(user._id);
 

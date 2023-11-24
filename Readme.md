@@ -1420,3 +1420,638 @@ export const Login = () => {
 
 
 Now lets create userAuthContext to pass the data, required by the components
+
+Create Folder in src as context and file name as AuthContext.jsx
+
+```js 
+//AuthContext.jsx
+
+import { createContext, useState } from "react";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({children}) => {
+    const [user, setUser] = useState({
+        name : "Charles",
+    });
+
+
+    return (
+        <AuthContext.Provider value = {{user,}}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+```js 
+//main.jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { BrowserRouter } from 'react-router-dom'
+import { AuthContextProvider } from './context/AuthContext.jsx'
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthContextProvider>
+        <App />
+      </AuthContextProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
+)
+
+```
+
+The Context API in React is a way to manage the state of your application and provide that state to all components without having to pass it down manually through props at every level. Here's a breakdown of the steps involved in using the Context API:
+
+Create a Context:
+Use createContext from react to create a new context. This AuthContext will be used to provide and consume the authentication state.
+
+Create a Context Provider:
+Create a component that will serve as the provider for the context. This component will hold the state you want to share.In this example, AuthContextProvider is a wrapper component that provides the authentication state (user) to its children.
+
+Wrap Your App with the Context Provider:
+In your main index.js or App.js file, wrap your entire application or the relevant part of it with the context provider.
+This makes the authentication context available to all components within the AuthContextProvider.
+
+Consume the Context:
+In any component that needs access to the authentication state, use the useContext hook.
+
+```js 
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
+
+const SomeComponent = () => {
+    const { user } = useContext(AuthContext);
+
+    // Now, 'user' contains the authentication state.
+    // Use it as needed.
+};
+
+```
+By using the useContext hook, you can access the state provided by the AuthContextProvider in any component within its subtree.
+
+The Context API is useful for managing global state, like authentication, theming, or any data that needs to be shared across many components. It helps avoid prop drilling and makes the state accessible in a more elegant and efficient way.
+
+
+Now in Authcontext we need to have data, and we would be getting data only if user have registered and save it to mongoDb and extract it
+
+
+firstly I need to send the skeleton of data that will be passed to the Register.jsx,
+We will define this skeleton in AuthContext.jsx as UseSatate,
+Also we will be having set to set the data.
+Hence we need to pass the set to Register.jsx, we can pass it as callbackFn and get the info.
+
+```js 
+//AuthContext.jsx
+import { createContext, useState } from "react";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, [])
+
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+
+```js 
+import React, { useContext, useEffect } from "react";
+import { Form, Button, Stack, Row, Col } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+import { AuthContext } from "../context/AuthContext";
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { registerInfo, updateRegisterInfo } = useContext(AuthContext);
+  console.log(registerInfo)
+
+  return (
+    <Form className="mt-md-5">
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" onChange={(e) => updateRegisterInfo({ ...registerInfo, name: e.target.value })} />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" onChange={(e) => updateRegisterInfo({ ...registerInfo, email: e.target.value })} />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" onChange={(e) => updateRegisterInfo({ ...registerInfo, password: e.target.value })} />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              Register
+            </Button>
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+```
+
+
+Functionality changes
+
+when click on submit we need a function to registerUser.
+fn is defined in AuthContext, should make an fn call defined in service.js in Util Folder.
+
+Register Button Clicked -> AuthContext fn(Triggered) -> service.js fn(Triggered) -> Makes an api call to Backend and get the response(Ok and Not Ok) and sends back the data to the called components.
+
+
+Start with service.js -> AuthContext -> registerUser.
+Remember there are other mis things to be done like declaring some variables,making use of useState.
+
+```js 
+//services.js
+export const baseUrl = "http://localhost:5002/api";
+
+export const postRequest = async (url, body) => {
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            'content-type': 'application/json'
+        },
+        body,
+    });
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+    const data = await response.json();
+
+    return data;
+}
+```
+
+Now lets make change in AuthContext
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, [])
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo])
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+```
+
+
+```js 
+//Register.jsx
+
+import React, { useContext, useEffect } from "react";
+import { Form, Button, Stack, Row, Col, Alert } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+import { AuthContext } from "../context/AuthContext";
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading } = useContext(AuthContext);
+  console.log(registerInfo)
+
+  return (
+    <Form className="mt-md-5" onSubmit={registerUser}>
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" onChange={(e) => updateRegisterInfo({ ...registerInfo, name: e.target.value })} />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" onChange={(e) => updateRegisterInfo({ ...registerInfo, email: e.target.value })} />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" onChange={(e) => updateRegisterInfo({ ...registerInfo, password: e.target.value })} />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              {isRegisterLoading ? 'creating your account...' : "Register"}
+            </Button>
+            {registerError?.error && <Alert variant="danger"><p>{registerError?.message}</p></Alert>}
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+```
+
+Now once registered we need to keep it as logged in even if page refreshes.
+we can achieve this by useEffect in AuthContext.jsx
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useEffect, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    console.log("Userr", user); //Output : {_id: '655f48ad48be6b7c927ea038', name: 'Ram', email: 'ram@gmail.com', token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N…U0MX0.OsoGTKvZo6cUT-lTAHQJtj1wlBYrk5UTj1KnISdxQQc'}
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, []);
+
+    useEffect(() => {
+        const user = localStorage.getItem("User");
+
+        setUser(JSON.parse(user));
+    }, []);
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo])
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+
+Now if user Data exist,we need to Route it to chat Page.Its simple can be done by conditional rendering in app.jsx
+
+```js 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container } from 'react-bootstrap'
+import { NavBar } from './components/NavBar';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
+
+function App() {
+  const { user } = useContext(AuthContext)
+
+  return (
+    <>
+      <NavBar></NavBar>
+      <Container>
+        <Routes>
+          <Route path='/' element={user ? <Chat /> : <Login />} />
+          <Route path='/login' element={user ? <Chat /> : <Login />} />
+          <Route path='/register' element={user ? <Chat /> : <Register />} />
+          <Route path='*' element={<Navigate to='/' />} />
+        </Routes >
+      </Container>
+    </>
+  )
+}
+
+export default App
+
+```
+
+Also made code change in NavBar.jsx
+When user logged in, we need to see 'Logout' instead of 'Login' and 'Register'
+Also we dont need to render Span
+
+
+```js 
+import React, { useContext } from 'react'
+import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import pulseLogo from '../assets/pulseLogo.png'
+import { AuthContext } from '../context/AuthContext';
+
+export const NavBar = () => {
+    const { user, logoutUser } = useContext(AuthContext);
+
+    return (
+        <>
+            <Navbar border="success" className="mb-4 myCustomNavbar">
+                <Container>
+                    <Link to='/' className='text-decoration-none'>
+                        <h2 className='navBarHeading'>
+                            PulseChat
+                            <img src={pulseLogo} style={{ width: '30px' }}></img>
+                        </h2>
+                    </Link>
+                    {user && <span>Welcome, {user?.name}! 😎</span>}
+                    <Nav>
+                        <Stack direction='horizontal' gap={3}>
+                            {user && (<>
+                                <Link onClick={() => logoutUser()} to='/login' className='text-decoration-none'>
+                                    <h6 className='navBarHeading '>
+                                        Logout
+                                    </h6>
+                                </Link>
+                            </>)}
+                            {!user && (
+                                <>
+                                    <Link to='/login' className='text-decoration-none'>
+                                        <h6 className='navBarHeading '>
+                                            Login
+                                        </h6>
+                                    </Link>
+                                    <Link to='/register' className='text-decoration-none'>
+                                        <h6 className='navBarHeading'>
+                                            Register
+                                        </h6>
+                                    </Link>
+                                </>
+                            )}
+                        </Stack>
+                    </Nav>
+                </Container>
+            </Navbar>
+        </>
+    )
+}
+
+```
+
+
+Similar changes done for LoginUser
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useEffect, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+
+    // ***************************************************************
+    //Register
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    console.log("Userr", user);
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, []);
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo]);
+
+
+    // ***************************************************************
+    //Login
+    //Skeleton to be passed to Login.jsx and get the info and setIt.
+    const [loginError, setLoginError] = useState(null);
+    const [isLoginLoading, setIsLoginLoading] = useState(false);
+
+
+    const [loginInfo, setLoginInfo] = useState({
+        email: "",
+        password: ""
+    });
+
+
+    const updateLoginInfo = useCallback((info) => {
+        setLoginInfo(info);
+    }, []);
+
+    const loginUser = useCallback((async (e) => {
+        e.preventDefault();
+        setIsLoginLoading(true);
+        setLoginError(null);
+
+        const response = await postRequest(`${baseUrl}/user/login`, JSON.stringify(loginInfo));
+
+        setIsLoginLoading(false);
+
+        if (response.error) {
+            return setLoginError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response)
+
+    }), [loginInfo])
+
+
+
+    //*****************************************************
+    // LocalStorage 
+
+    useEffect(() => {
+        const user = localStorage.getItem("User");
+        setUser(JSON.parse(user));
+    }, []);
+
+
+
+    //*****************************************************
+    // Logout
+    const logoutUser = () => {
+        localStorage.removeItem("User");
+        setUser(null);
+        setRegisterInfo(register);
+        setLoginInfo(login);
+    }
+    // *********************************************************************************
+
+
+    console.log("registerInfo", registerInfo);
+    console.log("loginInfo", loginInfo);
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading, logoutUser, loginInfo, updateLoginInfo, loginUser, loginError, isLoginLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+```js
+//Login
+
+import React, { useContext, useEffect } from "react"
+import { Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+import backgroundImage from '../assets/messageBG2.jpg'
+import { AuthContext } from "../context/AuthContext";
+
+export const Login = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'left';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { loginInfo, updateLoginInfo, loginUser, loginError, isLoginLoading } = useContext(AuthContext)
+
+
+  return (
+    <>
+      <Form className="mt-5" onSubmit={loginUser}>
+        <Row style={{ justifyContent: "right" }}>
+          <Col className="form" xs={6} >
+            <Stack gap={2}>
+              <h2 style={{ padding: '20px', textAlign: "center" }}>Login</h2>
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" placeholder="Email" onChange={(e) => updateLoginInfo({ ...loginInfo, email: e.target.value })}></Form.Control>
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" placeholder="Password" onChange={(e) => updateLoginInfo({ ...loginInfo, password: e.target.value })}></Form.Control>
+              <Button className="mt-3 mb-3" variant="primary" type="submit">{isLoginLoading ? "Logging in.." : "Login"}</Button>
+              {loginError && <Alert variant="danger"><p>{loginError?.message}</p></Alert>}
+            </Stack>
+          </Col>
+        </Row>
+      </Form>
+    </>
+  )
+}
+
+```
+
