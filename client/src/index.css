@@ -1,29 +1,42 @@
 @import url('https://fonts.cdnfonts.com/css/euclid-circular-a');
 
-
-body {
-    background: rgb(0, 30, 43);
-    font-family: 'Euclid Circular A', sans-serif;
-    color: #fff;
-    height: 100vh;
+:root {
+    --bg: rgb(0, 30, 43);
+    --nav-bg: rgb(0, 20, 23);
+    --text-color-white: #fff;
+    --neon-green: #00ed64;
+    --notification-text-color: rgb(0, 30, 43);
+    --border-white: #fff;
+    --purple : rgb(212, 0, 255);
 }
 
+
+body {
+    background: var(--bg);
+    font-family: 'Euclid Circular A', sans-serif;
+    color: var(--text-color-white);
+    height: 100vh;
+    overflow: hidden;
+}
+
+
+
 .myCustomNavbar {
-    background: rgb(0, 20, 23);
+    background: var(--nav-bg);
     height: 3.75rem;
-    border-top: 2px solid #00ed64;
-    border-bottom: 2px solid #00ed64;
+    border-top: 2px solid var(--neon-green);
+    border-bottom: 2px solid var(--neon-green);
 }
 
 .navBarHeading {
-    color: #fff;
+    color: var(--text-color-white);
 }
 
 .form {
-    background: rgb(0, 30, 43);
-    box-shadow: 22px 18px 10px 0px #00ed64;
+    background: var(--bg);
+    box-shadow: 22px 18px 10px 0px var(--neon-green);
     border-radius: 10px;
-    color: #ffffff;
+    color: var(--text-color-white);
     padding: 0 25px 35px;
 }
 
@@ -31,25 +44,30 @@ body {
 /* All users */
 .all-users {
     display: flex;
-    margin-bottom: 1rem;
+    flex-direction: column;
+    height: 100vh;
 }
 
 .single-user {
-    background: rgb(0, 213, 255);
-
+    background: var(--nav-bg);
+    width: 120px;
     cursor: pointer;
     padding: 5px 7px;
     border-radius: 10px;
+    border: 2px solid var(--border-white);
     margin-right: 0.5rem;
     position: relative;
+    margin-bottom: 0.5rem;
 }
 
 /* User Card */
 .user-card {
-
     position: relative;
-    border-bottom: 1px solid rgb(100, 100, 100);
+    border: 2px solid var(--border-white);
+    /* box-shadow: 5px 5px 10px 0px var(--neon-green); */
+    box-shadow: 5px 5px 10px 0px var(--purple);
     width: 380px;
+    border-radius: 8px;
 }
 
 .user-card .text-content {
@@ -68,27 +86,105 @@ body {
 
 .user-online {
     display: inline-block;
-    height: 12px;
-    width: 12px;
+    height: 14px;
+    width: 14px;
     border-radius: 50%;
-    background: rgb(0, 219, 0);
+    background: var(--neon-green);
     position: absolute;
-    top: -3px;
-    right: -3px;
+    top: -4px;
+    right: -4px;
     z-index: 2;
 }
+
+/* .user-online {
+    width: 25px;
+    height: 25px;
+    overflow: hidden;
+    position: absolute;
+    top: -1px;
+    right: -1px;
+}
+
+.user-online:after {
+    content: '';
+    background: var(--neon-green);
+    width: 142%;
+    height: 142%;
+    position: absolute;
+    transform: rotate(-45deg) translate(71%, 0);
+} */
 
 /* Chat Box */
 .chat-box {
     max-height: calc(100vh - 10rem);
     overflow-y: auto;
-    background: rgb(25, 25, 25);
+    background: rgb(0, 0, 0);
     border-radius: 10px;
+    min-width: calc(100vh - 10rem);
 }
 
-.messages-box {
-    height: 85vh;
+.no-conversation-selected {
+    display: flex;
+    text-align: center;
+    height: calc(100vh - 10rem);
+    border-radius: 10px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid black;
 }
+
+.loading-chat-box {
+    display: flex;
+    text-align: center;
+    height: calc(100vh - 10rem);
+    border-radius: 10px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    background: rgb(0, 0, 0);
+}
+
+.gradient-border {
+    --borderWidth: 3px;
+    background: #1D1F20;
+    position: relative;
+    border-radius: var(--borderWidth);
+}
+
+.gradient-border:after {
+    content: '';
+    position: absolute;
+    top: calc(-1 * var(--borderWidth));
+    left: calc(-1 * var(--borderWidth));
+    height: calc(100% + var(--borderWidth) * 2);
+    width: calc(100% + var(--borderWidth) * 2);
+    /* background: linear-gradient(60deg, #f79533, #f37055, #ef4e7b, #a166ab, #5073b8, #1098ad, #07b39b, #6fba82); */
+    background: linear-gradient(60deg, #00ed64, #000, #00ed64, #000);
+    border-radius: calc(2 * var(--borderWidth));
+    z-index: -1;
+    animation: animatedgradient 3s ease alternate infinite;
+    background-size: 300% 300%;
+}
+
+
+@keyframes animatedgradient {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+
+
+
 
 /* Chat Header */
 .chat-header {
@@ -96,32 +192,37 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0.75rem;
-
-    background: rgb(30, 30, 30);
+    background: var(--nav-bg);
+    border-bottom: 2px solid var(--neon-green);
 }
+
+
+
 
 /* Messages */
 .messages {
     max-height: calc(100vh - 15rem);
     overflow-y: auto;
     padding: 0 2rem;
+    margin-top: 1rem;
+    font-weight: 500;
 }
 
 .message {
-
-    background: #282828;
-    padding: 0.75rem;
-    border-radius: 5px;
-    max-width: 50%;
+    background: #1D1F20;
+    padding: 0.5rem;
+    border-radius: 10px;
+    width: 25%;
+    min-width: 30%;
 }
 
 .message.self {
-
-    background: #00bd9b;
+    background: var(--neon-green);
+    color: #1D1F20;
 }
 
 .message-footer {
-    font-size: 12px;
+    font-size: 10px;
     align-self: flex-end;
     font-weight: 400;
 }
@@ -129,13 +230,14 @@ body {
 /* Chat Input  */
 .chat-input {
     width: 100%;
-    background: rgb(30, 30, 30);
+    background: var(--nav-bg);
+    border-top: 2px solid var(--neon-green);
     padding: 1rem;
 }
 
 .send-btn {
     border: none;
-    background: rgba(72, 112, 223, 1);
+    background: var(--purple);
 
     height: 40px;
     width: 40px;
@@ -223,7 +325,7 @@ body {
 
 .this-user-notifications {
     display: flex;
-    background: #00bd9b;
+    background: var(--neon-green);
     height: 20px;
     width: 20px;
     font-size: 12px;
@@ -231,4 +333,5 @@ body {
     border-radius: 50%;
     align-items: center;
     justify-content: center;
+    color: var(--notification-text-color)
 }

@@ -1,30 +1,37 @@
-# Server
+## Server
 
-First server side coding then client
+1. Create a `server` folder.
 
-create serever Folder
+    ```bash
+    ..\chat-app\server> npm init
+    ```
 
-..\chat-app\server> npm init
+    Follow the prompts during the initialization:
 
-package name: (server)
-version: (1.0.0)
-description:            
-entry point: (index.js) 
-test command:              
-git repository:                
-keywords:             
-author:                                             
-license: (ISC)       
+    - **Package name:** (server)
+    - **Version:** (1.0.0)
+    - **Description:** [Your description here]
+    - **Entry point:** (index.js)
+    - **Test command:**
+    - **Git repository:**
+    - **Keywords:**
+    - **Author:**
+    - **License:** (ISC)
 
-create index.js file
+2. Create an `index.js` file in the `server` folder.
 
-we need some libraries to install
+3. Install the required libraries:
 
-npm i express mongoose cors dotenv
+    ```bash
+    npm i express mongoose cors dotenv
+    ```
 
+4. To run `index.js` continuously in development mode (automatically restarting when you save changes), install `nodemon`:
 
-To run index.js in dev continuously when yousave changes
-npm i nodemon
+    ```bash
+    npm i nodemon
+    ```
+
 
 //package.json
 
@@ -50,10 +57,18 @@ npm i nodemon
 }
 ```
 
-now run - ..\chat-app\server> npm run dev   
+## Run the Server
 
+To start the server in development mode, run the following command:
 
-basic setup
+```bash
+..\chat-app\server> npm run dev
+```
+
+## Basic Setup
+
+Create an `index.js` file with the following code:
+
 ```js 
 //index.js
 
@@ -67,13 +82,16 @@ app.listen(port, () => {
 });
 ```
 
-we can make port as env variable.
+## Configuring Port as an Environment Variable
 
-To make the port value configurable using an environment variable, you can modify your index.js file to read the port from the environment variable. Here's an example using the dotenv package to load variables from a .env file:
+To make the port value configurable using an environment variable, you can follow these steps:
 
-Create a .env file in the same directory as your index.js with the following content:
-PORT=5001
+1. **Create a `.env` file:**
+   Create a `.env` file in the same directory as your `index.js`.
 
+   ```plaintext
+       PORT=5001
+    ```
 Modify your index.js file:
 
 ```js 
@@ -131,7 +149,9 @@ app.listen(port, () => {
 
 ```
 
-By adding app.use(cors());, you allow all origins to access your server. If you want to restrict it to specific origins, you can pass an options object to cors() with the origin property set to an array of allowed origins:
+By adding app.use(cors());, 
+you allow all origins to access your server. 
+If you want to restrict it to specific origins, you can pass an options object to cors() with the origin property set to an array of allowed origins:
 
 ```js 
 app.use(cors({
@@ -209,7 +229,6 @@ mongoose.connect(uri).then(() => {
 })
 
 ```
-
 
 
 ## app.get()
@@ -381,14 +400,15 @@ app.listen(port, () => {
     });
     ```
 
+Create three new folders:
 
-Create 3 new Folders
-Models
-Controllers
-Routes
+1. **Models**
+2. **Controllers**
+3. **Routes**
 
 
-## Models:
+
+ ## Models:
 
 Purpose: The Models folder is typically used to store data models or schema definitions. In the context of MongoDB and Mongoose (which you seem to be using), this is where you define your data structures and interact with the database.
 Example: If your application involves users, you might have a User.js file in the Models folder that defines the schema for user data.
@@ -573,7 +593,7 @@ module.exports = router;
 ```
 
 
-Lets workon userController logic like registering user.
+Lets work on userController logic like registering user.
 Before that we need install some more packages
 
 `npm i bcrypt jsonwebtoken validator`
@@ -612,8 +632,9 @@ const registerUser = (req,res) => {
 
 module.exports = {registerUser}
 ```
+<hr>
 
-`so how do we get these params from client side, what tag it is in input? or something else?`
+### `so how do we get these params from client side, what tag it is in input? or something else?`
 
 To send data from the client side to the server side, you typically use HTML forms or JavaScript to make HTTP requests. Assuming you're using a form to collect user registration data, you would use input fields to capture the values for name, email, and password. Here's a basic example using HTML:
 
@@ -711,18 +732,24 @@ Check for Existing User: It queries the database to check if a user with the pro
 Check for Empty Fields: It ensures that the required fields (name, email, password) are not empty. If any of them is empty, it returns a 400 status with an appropriate error message.
 
 Data Validation: It uses the validator library to validate the email format and password strength. If the email is not a valid email or the password is not strong, it returns a 400 status with the corresponding error message.
-`we would have 2 vaidations frontend and backend. And backend validation is more important`
 
-User Instance Creation: It creates a new instance of the userModel with the provided name, email, and password.
+<hr>
 
-Password Hashing: It generates a salt and hashes the user's password using bcrypt before saving it to the database.
+### `we would have 2 vaidations frontend and backend. And backend validation is more important`
 
-Save User to Database: It saves the user instance, including the hashed password, to the database.
+<hr>
 
-Exports the Function: The function is exported for use in other parts of the application.
+User Instance Creation: This step involves creating a new instance of the userModel with the provided name, email, and password.
+
+Password Hashing: The system generates a salt and hashes the user's password using bcrypt before saving it to the database.
+
+Save User to Database: The user instance, including the hashed password, is saved to the database.
+
+Function Export: The function is exported for use in other parts of the application.
 
 
-`userModel.findOne({email}) ?`
+
+### `userModel.findOne({email}) ?`
 
 userModel: This is an instance of a Mongoose model. In Mongoose, models are used to interact with MongoDB collections. The userModel is specifically designed to interact with the "users" collection in your MongoDB database. It's based on the schema you've defined for a user.
 
@@ -815,54 +842,65 @@ const registerUser = async (req, res) => {
 module.exports = { registerUser }
 
 ```
+<hr>
 
-`res.status(200).json({_id : user._id, name, email, token})  y do i need to send token?`
+### `res.status(200).json({_id : user._id, name, email, token})` - Why include a token?
 
-Sending a token as part of the response is a common practice in authentication mechanisms, particularly when a user registers or logs in. Here are some reasons why you might want to include the token in the response:
+Including a token as part of the response is a common practice in authentication mechanisms, particularly during user registration or login. Here are some reasons why including the token in the response is beneficial:
 
-Authentication and Authorization:
+#### Authentication and Authorization:
 
-The token serves as a form of authentication. Once the user successfully registers, the token can be used for subsequent requests to authenticate and authorize the user. This is commonly done by including the token in the headers of future requests.
-Stateless Communication:
+The token serves as a form of authentication. After successful registration, the token can be used for subsequent requests to authenticate and authorize the user. Commonly, the token is included in the headers of future requests.
 
-Tokens allow for stateless communication between the client and the server. Instead of relying on server-side sessions to track user state, the token contains the necessary information to verify the user's identity.
-Reduced Server Load:
+#### Stateless Communication:
 
-With tokens, the server doesn't need to store user sessions, which can reduce the load on the server, especially in a distributed or stateless architecture.
-Secure Information Exchange:
+Tokens enable stateless communication between the client and the server. Instead of relying on server-side sessions to track user state, the token contains the necessary information to verify the user's identity.
 
-Tokens can be designed to contain specific information about the user (claims) and can be encrypted to ensure the integrity and confidentiality of the information.
-Consistent User Experience:
+#### Reduced Server Load:
 
-Including the token in the response allows the client to store it locally (e.g., in a cookie or local storage) and automatically include it in subsequent requests. This helps maintain a consistent user experience without requiring the user to reauthenticate with every request.
+Tokens eliminate the need for the server to store user sessions, reducing the server load, especially in a distributed or stateless architecture.
+
+#### Secure Information Exchange:
+
+Tokens can be designed to contain specific user information (claims) and can be encrypted to ensure the integrity and confidentiality of the information.
+
+#### Consistent User Experience:
+
+Including the token in the response allows the client to store it locally (e.g., in a cookie or local storage) and automatically include it in subsequent requests. This maintains a consistent user experience without requiring the user to reauthenticate with every request.
+
+<hr>
 
 `but we arent showing this token to actual user right? so in realworld and all the application,token decides whether the user is authenticated or should be kept as authenticated unless token expires correct?`
 
 Yes, that's correct. In many real-world applications, tokens play a crucial role in determining whether a user is authenticated. Here's a breakdown of how it typically works:
 
-Authentication:
+#### Authentication:
 
-When a user logs in or is otherwise authenticated, the server generates a token.
-This token is then sent to the client, and the client stores it securely (e.g., in a cookie, local storage, or another secure storage mechanism).
-Authorization:
+- When a user logs in or is otherwise authenticated, the server generates a token.
+- This token is then sent to the client, and the client stores it securely (e.g., in a cookie, local storage, or another secure storage mechanism).
 
-For each subsequent request to a protected resource or action, the client includes the token in the request headers.
-The server verifies the token to determine the user's identity and whether they have the necessary permissions (authorization) to perform the requested action.
-Token Expiration:
+#### Authorization:
 
-Tokens often have an expiration time (specified in the token itself). If a token expires, the user is required to reauthenticate by obtaining a new token.
-Secure Communication:
+- For each subsequent request to a protected resource or action, the client includes the token in the request headers.
+- The server verifies the token to determine the user's identity and whether they have the necessary permissions (authorization) to perform the requested action.
 
-The use of tokens allows for stateless and secure communication between the client and server. The server doesn't need to store session information, making it suitable for scalable and distributed architectures.
-Revocation and Renewal:
+#### Token Expiration:
 
-In some systems, there may be mechanisms for token revocation (e.g., if a user logs out or if a token is compromised). Additionally, some systems implement token renewal to provide a seamless experience for the user without requiring frequent logins.
+- Tokens often have an expiration time (specified in the token itself). If a token expires, the user is required to reauthenticate by obtaining a new token.
+
+#### Secure Communication:
+
+- The use of tokens allows for stateless and secure communication between the client and server. The server doesn't need to store session information, making it suitable for scalable and distributed architectures.
+
+#### Revocation and Renewal:
+
+- In some systems, there may be mechanisms for token revocation (e.g., if a user logs out or if a token is compromised). Additionally, some systems implement token renewal to provide a seamless experience for the user without requiring frequent logins.
+
 By relying on tokens, applications can implement secure and scalable authentication and authorization mechanisms, and they can also benefit from the advantages of stateless communication. Keep in mind that the specifics may vary based on the authentication and authorization strategy chosen for a particular application.
-
 
 <hr>
 
-Lets create loginUser
+### Lets create loginUser
 
 its simple
 
@@ -1127,18 +1165,21 @@ export default App
 
 
 ```
-Explanation:
-Routes and Route Components:
+### Explanation:
 
-The Routes component is a container for multiple Route components.
-Route components define the mapping between a URL path and a React component to render.
-In your code, you have three routes:
-'/' path maps to the Chat component.
-'/login' path maps to the Login component.
-'/register' path maps to the Register component.
-Navigate Component:
+#### Routes and Route Components:
 
-The Navigate component is used to perform client-side navigation. In this case, if the user visits any route that is not explicitly defined ('*'), they will be redirected to the '/' (Chat) route.
+- The `Routes` component is a container for multiple `Route` components.
+- `Route` components define the mapping between a URL path and a React component to render.
+- In your code, you have three routes:
+  - `'/'` path maps to the `Chat` component.
+  - `'/login'` path maps to the `Login` component.
+  - `'/register'` path maps to the `Register` component.
+
+#### Navigate Component:
+
+- The `Navigate` component is used to perform client-side navigation. In this case, if the user visits any route that is not explicitly defined (`'*'`), they will be redirected to the `'/'` (Chat) route.
+
 
 ```js 
 // main.jsx
@@ -1159,31 +1200,38 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 )
 
 ```
-Explanation:
-React.StrictMode:
+### Explanation:
 
-Wraps your entire app in strict mode. It helps catch common bugs and can help you write more reliable components.
-BrowserRouter:
+#### React.StrictMode:
 
-Provides the routing infrastructure for your app. It enables the use of the <Routes> and <Route> components in your application.
-ReactDOM.createRoot:
+- Wraps your entire app in strict mode. It helps catch common bugs and can help you write more reliable components.
 
-It is used to create a root for the React application. It's part of the new concurrent rendering API introduced in React.
-React Router-DOM:
-React Router-DOM:
+#### BrowserRouter:
 
-react-router-dom is a library for declarative routing in React applications.
-It enables navigation among views of various components in a React Application, allows changing the browser URL, and keeps UI in sync with the URL.
-Components:
+- Provides the routing infrastructure for your app. It enables the use of the `Routes` and `Route` components in your application.
 
-<BrowserRouter>: Provides the context for routing in your application.
-<Routes>: Acts as a switch statement for rendering different components based on the current URL.
-<Route>: Defines a route mapping between a URL path and a component to render.
-<Navigate>: Used for navigation and redirection.
-This setup allows you to create a multi-page React application with different components rendered based on the URL. The react-router-dom library helps manage client-side navigation and keeps your UI in sync with the URL.
+#### ReactDOM.createRoot:
+
+- It is used to create a root for the React application. It's part of the new concurrent rendering API introduced in React.
+
+#### React Router-DOM:
+
+- `react-router-dom` is a library for declarative routing in React applications.
+- It enables navigation among views of various components in a React Application, allows changing the browser URL, and keeps UI in sync with the URL.
+
+#### Components:
+
+- `BrowserRouter`: Provides the context for routing in your application.
+- `Routes`: Acts as a switch statement for rendering different components based on the current URL.
+- `Route`: Defines a route mapping between a URL path and a component to render.
+- `Navigate`: Used for navigation and redirection.
+
+This setup allows you to create a multi-page React application with different components rendered based on the URL. The `react-router-dom` library helps manage client-side navigation and keeps your UI in sync with the URL.
 
 
-Bootstrap config -pending to write
+
+Bootstrap config -- pending
+<hr>
 
 Added container 
 
@@ -1213,7 +1261,7 @@ function App() {
 export default App
 
 ```
-NavBar
+### NavBar
 
 ```js 
 import React from 'react'
@@ -1253,27 +1301,33 @@ export const NavBar = () => {
 
 ```
 
-Import Statements:
+## Import Statements:
 
-react-bootstrap: Importing components from the React Bootstrap library for styling and layout.
-Link: From react-router-dom for navigation within your React app.
+- **react-bootstrap:** Used for importing components from the React Bootstrap library to handle styling and layout.
+- **Link:** Imported from `react-router-dom` to enable navigation within your React app.
 
-Navbar Structure:
-Navbar: The main navigation container.
-Container: Wraps the content inside the Navbar to control the width and provide spacing.
+## Navbar Structure:
 
-Logo (PulseChat):
-Link to='/': Creates a link to the home page. The text-decoration-none class removes the default underline.
-h2 className='pulseChatHeading': Heading with a class for styling. You can define styles for pulseChatHeading in your CSS.
+- **Navbar:** The primary navigation container.
+- **Container:** Wraps the content inside the Navbar to control the width and provide spacing.
+
+## Logo (PulseChat):
+
+- **Link to='/':** Creates a link to the home page. The `text-decoration-none` class removes the default underline.
+- **h2 className='pulseChatHeading':** Heading with a class for styling. You can define styles for `pulseChatHeading` in your CSS.
+
+## Navigation Links:
+
+- **Nav:** The container for navigation links.
+- **Stack direction='horizontal' gap={3}:** A horizontal stack to arrange login and register links with a gap of 3.
+
+## Login and Register Links:
+
+- **Link to='/login':** Creates a link to the login page with a styled heading.
+- **Link to='/register':** Creates a link to the register page with a styled heading.
 
 
-Navigation Links:
-Nav: The container for navigation links.
-Stack direction='horizontal' gap={3}: A horizontal stack to arrange login and register links with a gap of 3.
-
-Login and Register Links:
-Link to='/login': Creates a link to the login page with a styled heading.
-Link to='/register': Creates a link to the register page with a styled heading.
+<hr>
 
 
 Lets start working on crfeating registration Page,login Page
@@ -1468,20 +1522,26 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 ```
 
-The Context API in React is a way to manage the state of your application and provide that state to all components without having to pass it down manually through props at every level. Here's a breakdown of the steps involved in using the Context API:
+# Using the Context API in React
 
-Create a Context:
-Use createContext from react to create a new context. This AuthContext will be used to provide and consume the authentication state.
+The Context API in React is a mechanism for managing the state of your application and making that state accessible to all components without the need to manually pass it down through props at every level. Here's a breakdown of the steps involved in using the Context API:
 
-Create a Context Provider:
-Create a component that will serve as the provider for the context. This component will hold the state you want to share.In this example, AuthContextProvider is a wrapper component that provides the authentication state (user) to its children.
+## 1. Create a Context:
 
-Wrap Your App with the Context Provider:
-In your main index.js or App.js file, wrap your entire application or the relevant part of it with the context provider.
-This makes the authentication context available to all components within the AuthContextProvider.
+Use `createContext` from React to create a new context. This context, for example, `AuthContext`, will be employed to provide and consume the authentication state.
 
-Consume the Context:
-In any component that needs access to the authentication state, use the useContext hook.
+## 2. Create a Context Provider:
+
+Develop a component that acts as the provider for the context. This component will hold the state you want to share. In this example, `AuthContextProvider` is a wrapper component responsible for providing the authentication state (user) to its children.
+
+## 3. Wrap Your App with the Context Provider:
+
+In your main `index.js` or `App.js` file, encompass your entire application or the relevant part of it with the context provider. This ensures that the authentication context is available to all components within the `AuthContextProvider`.
+
+## 4. Consume the Context:
+
+In any component that requires access to the authentication state, utilize the `useContext` hook.
+
 
 ```js 
 import { useContext } from "react";
@@ -1495,18 +1555,23 @@ const SomeComponent = () => {
 };
 
 ```
-By using the useContext hook, you can access the state provided by the AuthContextProvider in any component within its subtree.
+# Accessing Context State with `useContext` Hook
 
-The Context API is useful for managing global state, like authentication, theming, or any data that needs to be shared across many components. It helps avoid prop drilling and makes the state accessible in a more elegant and efficient way.
+To access the state provided by the `AuthContextProvider` in any component within its subtree, you can use the `useContext` hook.
 
+The Context API is particularly valuable for managing global state, such as authentication, theming, or any data that needs to be shared across numerous components. It effectively eliminates prop drilling and provides a more elegant and efficient way to access shared state.
 
-Now in Authcontext we need to have data, and we would be getting data only if user have registered and save it to mongoDb and extract it
+## Implementation Steps:
 
+1. **Create a Context Skeleton in AuthContext.jsx:**
+   - Define the initial skeleton of data using `useState` in `AuthContext.jsx`.
+   - Include a setter function (`setUserData`) to update the data.
 
-firstly I need to send the skeleton of data that will be passed to the Register.jsx,
-We will define this skeleton in AuthContext.jsx as UseSatate,
-Also we will be having set to set the data.
-Hence we need to pass the set to Register.jsx, we can pass it as callbackFn and get the info.
+2. **Pass Data to Register.jsx:**
+   - To pass the `setUserData` function to `Register.jsx`, use it as a callback function.
+   - `Register.jsx` can then utilize this function to update the data within the authentication context.
+
+By following this approach, you establish a mechanism to manage and share user-related data, such as registration information, across components.
 
 ```js 
 //AuthContext.jsx
@@ -1586,16 +1651,48 @@ export const Register = () => {
 ```
 
 
-Functionality changes
+# Register User Functionality
 
-when click on submit we need a function to registerUser.
-fn is defined in AuthContext, should make an fn call defined in service.js in Util Folder.
+## Overview:
 
-Register Button Clicked -> AuthContext fn(Triggered) -> service.js fn(Triggered) -> Makes an api call to Backend and get the response(Ok and Not Ok) and sends back the data to the called components.
+To implement the "Register" button functionality, a sequence of actions needs to be performed:
 
+1. **User Clicks Register Button:**
+   - The user clicks the "Register" button in the application UI.
 
-Start with service.js -> AuthContext -> registerUser.
-Remember there are other mis things to be done like declaring some variables,making use of useState.
+2. **AuthContext Function Triggered:**
+   - The `registerUser` function in `AuthContext` is triggered in response to the button click.
+
+3. **Service.js Function Triggered:**
+   - The `registerUser` function in `service.js` (located in the Util folder) is invoked from `AuthContext`.
+
+4. **API Call to Backend:**
+   - The `registerUser` function in `service.js` makes an API call to the backend, sending the required data.
+
+5. **Backend Response:**
+   - The backend processes the registration request and returns a response (e.g., OK or Not OK).
+
+6. **Data Sent Back to Components:**
+   - The response from the backend is sent back to the components involved in the registration process.
+
+## Implementation Steps:
+
+1. **Declare Variables:**
+   - Declare any necessary variables, including state variables using `useState` if needed.
+
+2. **AuthContext Function (`registerUser`):**
+   - Implement the `registerUser` function in `AuthContext` to trigger the service function.
+
+3. **Service.js Function (`registerUser`):**
+   - Implement the `registerUser` function in `service.js` to make the API call to the backend.
+
+4. **Handle Backend Response:**
+   - Handle the response from the backend within the `registerUser` function in `service.js`.
+
+5. **Send Data Back to Components:**
+   - Ensure that the data (response or other relevant information) is sent back to the components that triggered the registration process.
+
+By following these steps, you establish the flow for registering a user, making use of the `AuthContext` and `service.js` for managing state and handling API calls, respectively.
 
 ```js 
 //services.js
@@ -1729,9 +1826,24 @@ export const Register = () => {
 };
 
 ```
+<hr>
 
-Now once registered we need to keep it as logged in even if page refreshes.
-we can achieve this by useEffect in AuthContext.jsx
+# Persistent User Authentication
+
+## Overview:
+
+To achieve persistent user authentication and keep the user logged in even after a page refresh, the `useEffect` hook in `AuthContext.jsx` can be utilized. This involves checking for an existing authentication token and setting the user state accordingly.
+
+## Implementation Steps:
+
+1. **Check for Existing Token:**
+   - In the `useEffect` hook of `AuthContext.jsx`, check for the existence of an authentication token in a persistent storage mechanism (e.g., localStorage or sessionStorage).
+
+2. **Set User State:**
+   - If a token is found, use it to fetch user information from the backend and set the user state in `AuthContext`.
+
+3. **Keep User Authenticated:**
+   - By setting the user state based on the existing token, the user remains authenticated even after a page refresh.
 
 ```js 
 //AuthContext.jsx
@@ -2054,20 +2166,20 @@ export const Login = () => {
 }
 
 ```
+<hr>
 
+# Chat Functionality
 
-Now we need to work on Main part that is Chat.
-
-3 things in client side:
-create Chat(new Chat)
-getlistofChat in UI (stack)
-findChat
+## Client-Side Changes:
+### 1. Create Chat (New Chat):
+### 2. Get List of Chats in UI (Stack):
+### 3. Find Chat:
 
 ![Alt text](image.png);
 
+## Server-Side Changes:
 
-
-ServerSide changes:
+### ServerSide changes:
 need to create new Model for chat.
 
 ```js 
@@ -2088,10 +2200,35 @@ module.exports = chatModel;
 
 ```
 
-and in controller we need to have chatController that createschat.
-//createChat
-//getUserChats
-//getChat
+# Chat Controller
+
+## Functions:
+
+### 1. Create Chat (`createChat`):
+
+- Implement a function to create a new chat.
+- Receive necessary data from the client, such as participants, chat name, or any other relevant information.
+- Validate the input data to ensure it meets the required criteria.
+- Utilize the chat model to create a new chat instance in the database.
+- Return an appropriate response to the client, indicating the success or failure of the chat creation.
+
+### 2. Get User Chats (`getUserChats`):
+
+- Implement a function to retrieve the list of chats associated with a specific user.
+- Accept the user's identifier (e.g., user ID) as a parameter.
+- Use the chat model to query the database for chats involving the specified user.
+- Return the list of user-specific chats to the client.
+
+### 3. Get Chat (`getChat`):
+
+- Implement a function to fetch the details of a specific chat.
+- Receive the chat identifier (e.g., chat ID) as a parameter.
+- Use the chat model to retrieve the chat details from the database.
+- Include information such as participants, messages, timestamps, etc., in the response.
+- Send the chat details back to the client.
+
+These controller functions handle the core chat-related operations, enabling the server to create new chats, fetch user-specific chat lists, and retrieve details of individual chats.
+
 
 ```js 
 //chatController.js 
@@ -2215,8 +2352,8 @@ mongoose.connect(uri).then(() => {
 
 
 Now we need to work on messages
-//createMesage
-//getMessages
+createMesage
+getMessages
 
 ```js
 // messageModel.js 
@@ -2294,7 +2431,7 @@ module.exports = router;
 app.use("/api/message", messageRouter); 
 ```
 
-
+<hr>
 
 Now we can work on creating fetch api in client Folder services.js
 
@@ -2438,7 +2575,7 @@ function App() {
 export default App
 
 ```
-
+<hr>
 
 Now lets make list of chatUsers
 ```js 
@@ -2492,6 +2629,1118 @@ export const UserChats = ({chat, user}) => {
 }
 
 ```
+<hr>
+
+So if you as a person is logged-in,you would like to see other user in list of userChats.
+
+So to do this we would be making use of custom hooks designed to get the recipients.
+
+created a folder hooks and add a filename as useFetchRecipient.js
+
+we are feeding it with chat and user associated with chat and try to get the userId other than the perdon loggedin.
+
+and trying to make api call toget the user info.(get user).
+
+```js 
+import { useState, useEffect } from "react";
+import { baseUrl, getRequest } from "../utils/services";
 
 
-So if youasaperson is logged-in,you would like to see other ids in list of userChats
+export const useFetchRecipient = (chat, user) => {
+    const [recipientUser, setRecipientUser] = useState(null);
+    const [error, setError] = useState(null);
+
+    const recipientId = chat?.members.find((id) => id !== user?._id);
+
+    useEffect(() => {
+
+        const getUser = async () => {
+            if (!recipientId) return null;
+
+            const response = await getRequest(`${baseUrl}/user/findUser/${recipientId}`)
+
+            if (response.error) {
+                return setError(response);
+            }
+
+            setRecipientUser(response);
+        };
+
+        getUser();
+
+    }, []);
+
+    return { recipientUser }
+}
+```
+
+
+```js 
+//UserChats.jsx
+import React from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Stack } from 'react-bootstrap';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between">
+            <div className="d-flex">
+                <div className="me-2">
+                    A
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">TextMessage</div>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+![Alt text](image-1.png)
+
+
+Lets work on creating Potential user List.
+
+![Alt text](image-3.png);
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+    const [potentialChats, setPotentialChats] = useState([]);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+```js 
+//PotentialChats.jsx
+
+import React, { useContext } from 'react'
+import { ChatContext } from '../../context/ChatContext'
+
+const PotentialChats = () => {
+    const { potentialChats } = useContext(ChatContext);
+    console.log("potentialChats", potentialChats)
+    return (
+        <>
+            <div className='all-users'>
+                {potentialChats && potentialChats.map((user, index) => {
+                    return (
+                        <>
+                            <div className="single-user" key={index}>
+                                {user.name}
+                                <span className="user-online"></span>
+                            </div>
+                        </>
+                    )
+                })}
+            </div>
+        </>
+    )
+}
+
+export default PotentialChats
+```
+
+```js
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          <PotentialChats />
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+              <p>chatBox</p>
+            </>
+          }
+        </Stack>
+      </Container>
+    </>
+  )
+}
+
+```
+
+
+
+CreateChat when clicked on potential userList
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+    const [potentialChats, setPotentialChats] = useState([]);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+```
+
+```js 
+//PotentialChats.jsx
+
+import React, { useContext } from 'react'
+import { ChatContext } from '../../context/ChatContext'
+import { AuthContext } from '../../context/AuthContext';
+
+const PotentialChats = () => {
+    const { potentialChats, createChat } = useContext(ChatContext);
+    const { user } = useContext(AuthContext)
+    console.log("potentialChats", potentialChats)
+    return (
+        <>
+            <div className='all-users'>
+                {potentialChats && potentialChats.map((u, index) => {
+                    return (
+                        <>
+                            <div className="single-user" key={index} onClick={(e) => createChat(user._id, u._id)}>
+                                {u.name}
+                                <span className="user-online"></span>
+                            </div>
+                        </>
+                    )
+                })}
+            </div>
+        </>
+    )
+}
+
+export default PotentialChats
+```
+
+
+Now when clicked on specific list of chats we need to see conversations
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+    console.log("currentChat",currentChat); //We get Chat id and the 2 members id.
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+    
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    }
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading, updateCurrentChat } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          <PotentialChats />
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index} onClick={() => { updateCurrentChat(chat) }}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+              <p>chatBox</p>
+            </>
+          }
+        </Stack>
+      </Container>
+    </>
+  )
+}
+
+```
+
+
+
+We have access to chat id, now we can make a call to get the conversations.
+
+```js
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessage] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    console.log("messages", messages)
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessage(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+<hr>
+
+
+Now lets work on Messages,when clicked on specific chat it should display chatBox components.
+
+![Alt text](image-4.png)
+
+![Alt text](image-5.png)
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessage] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    console.log("messages", messages)
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessage(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+import { ChatBox } from "../components/Chats/ChatBox";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading, updateCurrentChat } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index} onClick={() => { updateCurrentChat(chat) }}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+            </>
+          }
+          <ChatBox/>
+          <PotentialChats />
+        </Stack>
+      </Container>
+    </>
+  )
+}
+```
+
+```js 
+import React, { useContext } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Stack } from 'react-bootstrap';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+            </Stack>
+        </>
+    )
+}
+
+```
+<hr>
+
+Now lets work on displaying text messages,
+
+need to install packages `npm i moment`
+
+```js 
+import React, { useContext } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Stack } from 'react-bootstrap';
+import moment from 'moment';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+
+    console.log("recipientUser1", recipientUser);
+    console.log("currentChat1", currentChat);
+    console.log("user1", user);
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+                <Stack gap={3} className="messages">
+                    {messages && messages.map((message, index) => {
+                        return (
+                            <Stack key={index} className={`${message?.senderId === user?._id ? "message self align-self-end flex-grow-0" : "message align-self-start flex-grow-0"}`}>
+                                <span >{message.text}</span>
+                                <span className="message-footer">{moment(message.createdAt).calendar()}</span>
+                            </Stack>
+                        )
+                    })}
+                </Stack>
+            </Stack>
+        </>
+    )
+}
+
+```
+
+
+![Alt text](image-6.png)
+
+<hr>
+
+Lets Work on creating send message, store them in db.
+
+`npm i react-input-emoji`
+
+```js
+import React, { useContext, useState } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Button, Stack } from 'react-bootstrap';
+import moment from 'moment';
+import InputEmoji from 'react-input-emoji';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading, sendTextMessage } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+    const [textMessage, setTextMessage] = useState("");
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+
+    console.log("recipientUser1", recipientUser);
+    console.log("currentChat1", currentChat);
+    console.log("user1", user);
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+                <Stack gap={3} className="messages">
+                    {messages && messages.map((message, index) => {
+                        return (
+                            <Stack key={index} className={`${message?.senderId === user?._id ? "message self align-self-end flex-grow-0" : "message align-self-start flex-grow-0"}`}>
+                                <span >{message.text}</span>
+                                <span className="message-footer">{moment(message.createdAt).calendar()}</span>
+                            </Stack>
+                        )
+                    })}
+                </Stack>
+                <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
+                    <InputEmoji value={textMessage} onChange={setTextMessage}>
+                    </InputEmoji>
+                    <button className="send-btn" onClick={() => sendTextMessage(textMessage, user, currentChat._id, setTextMessage)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-send-fill" viewBox="0 0 16 16">
+                            <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                        </svg>
+                    </button>
+                </Stack>
+            </Stack>
+        </>
+    )
+}
+
+```
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
+        if (!textMessage) return null;
+        const response = await postRequest(`${baseUrl}/message`, JSON.stringify({
+            chatId: currentChatId,
+            senderId: sender._id,
+            text: textMessage
+        }));
+
+        if (response.error) {
+            return setSendTextMessageError(response);
+        }
+
+        setNewMessage(response);
+        setMessages((prev) => [...prev, response]);
+        setTextMessage("");
+
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+
