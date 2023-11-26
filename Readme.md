@@ -3528,7 +3528,7 @@ export const ChatBox = () => {
 
 ![Alt text](image-6.png)
 
-<hr>
+
 
 Lets Work on creating send message, store them in db.
 
