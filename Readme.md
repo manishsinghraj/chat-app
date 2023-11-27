@@ -1,30 +1,37 @@
-# Server
+## Server
 
-First server side coding then client
+1. Create a `server` folder.
 
-create serever Folder
+    ```bash
+    ..\chat-app\server> npm init
+    ```
 
-..\chat-app\server> npm init
+    Follow the prompts during the initialization:
 
-package name: (server)
-version: (1.0.0)
-description:            
-entry point: (index.js) 
-test command:              
-git repository:                
-keywords:             
-author:                                             
-license: (ISC)       
+    - **Package name:** (server)
+    - **Version:** (1.0.0)
+    - **Description:** [Your description here]
+    - **Entry point:** (index.js)
+    - **Test command:**
+    - **Git repository:**
+    - **Keywords:**
+    - **Author:**
+    - **License:** (ISC)
 
-create index.js file
+2. Create an `index.js` file in the `server` folder.
 
-we need some libraries to install
+3. Install the required libraries:
 
-npm i express mongoose cors dotenv
+    ```bash
+    npm i express mongoose cors dotenv
+    ```
 
+4. To run `index.js` continuously in development mode (automatically restarting when you save changes), install `nodemon`:
 
-To run index.js in dev continuously when yousave changes
-npm i nodemon
+    ```bash
+    npm i nodemon
+    ```
+
 
 //package.json
 
@@ -50,10 +57,18 @@ npm i nodemon
 }
 ```
 
-now run - ..\chat-app\server> npm run dev   
+## Run the Server
 
+To start the server in development mode, run the following command:
 
-basic setup
+```bash
+..\chat-app\server> npm run dev
+```
+
+## Basic Setup
+
+Create an `index.js` file with the following code:
+
 ```js 
 //index.js
 
@@ -67,13 +82,16 @@ app.listen(port, () => {
 });
 ```
 
-we can make port as env variable.
+## Configuring Port as an Environment Variable
 
-To make the port value configurable using an environment variable, you can modify your index.js file to read the port from the environment variable. Here's an example using the dotenv package to load variables from a .env file:
+To make the port value configurable using an environment variable, you can follow these steps:
 
-Create a .env file in the same directory as your index.js with the following content:
-PORT=5001
+1. **Create a `.env` file:**
+   Create a `.env` file in the same directory as your `index.js`.
 
+   ```plaintext
+       PORT=5001
+    ```
 Modify your index.js file:
 
 ```js 
@@ -131,7 +149,9 @@ app.listen(port, () => {
 
 ```
 
-By adding app.use(cors());, you allow all origins to access your server. If you want to restrict it to specific origins, you can pass an options object to cors() with the origin property set to an array of allowed origins:
+By adding app.use(cors());, 
+you allow all origins to access your server. 
+If you want to restrict it to specific origins, you can pass an options object to cors() with the origin property set to an array of allowed origins:
 
 ```js 
 app.use(cors({
@@ -209,7 +229,6 @@ mongoose.connect(uri).then(() => {
 })
 
 ```
-
 
 
 ## app.get()
@@ -381,14 +400,15 @@ app.listen(port, () => {
     });
     ```
 
+Create three new folders:
 
-Create 3 new Folders
-Models
-Controllers
-Routes
+1. **Models**
+2. **Controllers**
+3. **Routes**
 
 
-## Models:
+
+ ## Models:
 
 Purpose: The Models folder is typically used to store data models or schema definitions. In the context of MongoDB and Mongoose (which you seem to be using), this is where you define your data structures and interact with the database.
 Example: If your application involves users, you might have a User.js file in the Models folder that defines the schema for user data.
@@ -573,7 +593,7 @@ module.exports = router;
 ```
 
 
-Lets workon userController logic like registering user.
+Lets work on userController logic like registering user.
 Before that we need install some more packages
 
 `npm i bcrypt jsonwebtoken validator`
@@ -612,8 +632,9 @@ const registerUser = (req,res) => {
 
 module.exports = {registerUser}
 ```
+<hr>
 
-`so how do we get these params from client side, what tag it is in input? or something else?`
+### `so how do we get these params from client side, what tag it is in input? or something else?`
 
 To send data from the client side to the server side, you typically use HTML forms or JavaScript to make HTTP requests. Assuming you're using a form to collect user registration data, you would use input fields to capture the values for name, email, and password. Here's a basic example using HTML:
 
@@ -711,18 +732,24 @@ Check for Existing User: It queries the database to check if a user with the pro
 Check for Empty Fields: It ensures that the required fields (name, email, password) are not empty. If any of them is empty, it returns a 400 status with an appropriate error message.
 
 Data Validation: It uses the validator library to validate the email format and password strength. If the email is not a valid email or the password is not strong, it returns a 400 status with the corresponding error message.
-`we would have 2 vaidations frontend and backend. And backend validation is more important`
 
-User Instance Creation: It creates a new instance of the userModel with the provided name, email, and password.
+<hr>
 
-Password Hashing: It generates a salt and hashes the user's password using bcrypt before saving it to the database.
+### `we would have 2 vaidations frontend and backend. And backend validation is more important`
 
-Save User to Database: It saves the user instance, including the hashed password, to the database.
+<hr>
 
-Exports the Function: The function is exported for use in other parts of the application.
+User Instance Creation: This step involves creating a new instance of the userModel with the provided name, email, and password.
+
+Password Hashing: The system generates a salt and hashes the user's password using bcrypt before saving it to the database.
+
+Save User to Database: The user instance, including the hashed password, is saved to the database.
+
+Function Export: The function is exported for use in other parts of the application.
 
 
-`userModel.findOne({email}) ?`
+
+### `userModel.findOne({email}) ?`
 
 userModel: This is an instance of a Mongoose model. In Mongoose, models are used to interact with MongoDB collections. The userModel is specifically designed to interact with the "users" collection in your MongoDB database. It's based on the schema you've defined for a user.
 
@@ -754,3 +781,2966 @@ findOne({ email }): This method is used to find a single document in the MongoDB
 
 8. **`countDocuments(conditions)`:**
    Counts the number of documents in the collection that match the specified conditions.
+
+<hr>
+
+Lets Create JWT Token
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+
+    try {
+
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+module.exports = { registerUser }
+
+```
+<hr>
+
+### `res.status(200).json({_id : user._id, name, email, token})` - Why include a token?
+
+Including a token as part of the response is a common practice in authentication mechanisms, particularly during user registration or login. Here are some reasons why including the token in the response is beneficial:
+
+#### Authentication and Authorization:
+
+The token serves as a form of authentication. After successful registration, the token can be used for subsequent requests to authenticate and authorize the user. Commonly, the token is included in the headers of future requests.
+
+#### Stateless Communication:
+
+Tokens enable stateless communication between the client and the server. Instead of relying on server-side sessions to track user state, the token contains the necessary information to verify the user's identity.
+
+#### Reduced Server Load:
+
+Tokens eliminate the need for the server to store user sessions, reducing the server load, especially in a distributed or stateless architecture.
+
+#### Secure Information Exchange:
+
+Tokens can be designed to contain specific user information (claims) and can be encrypted to ensure the integrity and confidentiality of the information.
+
+#### Consistent User Experience:
+
+Including the token in the response allows the client to store it locally (e.g., in a cookie or local storage) and automatically include it in subsequent requests. This maintains a consistent user experience without requiring the user to reauthenticate with every request.
+
+<hr>
+
+`but we arent showing this token to actual user right? so in realworld and all the application,token decides whether the user is authenticated or should be kept as authenticated unless token expires correct?`
+
+Yes, that's correct. In many real-world applications, tokens play a crucial role in determining whether a user is authenticated. Here's a breakdown of how it typically works:
+
+#### Authentication:
+
+- When a user logs in or is otherwise authenticated, the server generates a token.
+- This token is then sent to the client, and the client stores it securely (e.g., in a cookie, local storage, or another secure storage mechanism).
+
+#### Authorization:
+
+- For each subsequent request to a protected resource or action, the client includes the token in the request headers.
+- The server verifies the token to determine the user's identity and whether they have the necessary permissions (authorization) to perform the requested action.
+
+#### Token Expiration:
+
+- Tokens often have an expiration time (specified in the token itself). If a token expires, the user is required to reauthenticate by obtaining a new token.
+
+#### Secure Communication:
+
+- The use of tokens allows for stateless and secure communication between the client and server. The server doesn't need to store session information, making it suitable for scalable and distributed architectures.
+
+#### Revocation and Renewal:
+
+- In some systems, there may be mechanisms for token revocation (e.g., if a user logs out or if a token is compromised). Additionally, some systems implement token renewal to provide a seamless experience for the user without requiring frequent logins.
+
+By relying on tokens, applications can implement secure and scalable authentication and authorization mechanisms, and they can also benefit from the advantages of stateless communication. Keep in mind that the specifics may vary based on the authentication and authorization strategy chosen for a particular application.
+
+<hr>
+
+### Lets create loginUser
+
+its simple
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+    try {
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        let user = await userModel.findOne({ email });
+
+        if (!user) return res.status(400).json("Invalid user or password!1");
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+
+        if (!isValidPassword) return res.status(400).json("Invalid user or password!2");
+
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name: user.name, email, token });
+    } catch (error) {
+        console.log("Error during Login User : ", error);
+        res.status(500).json(error)
+    }
+
+}
+
+module.exports = { registerUser, loginUser }
+
+```
+Also changes made in useRoute.js
+
+```js 
+//userRoute.js
+
+const express = require('express');
+const router = express.Router();
+const { registerUser, loginUser } = require('../Controllers/userController');
+
+router.post("/register", registerUser);
+router.post("/login", loginUser)
+
+module.exports = router;
+
+```
+
+
+Now lets work on getting single and all user which will be helpful for this project requirement frontend.
+
+```js
+//userRoute.js
+
+const express = require('express');
+const router = express.Router();
+const { registerUser, loginUser, findUser, getUsers } = require('../Controllers/userController');
+
+router.post("/register", registerUser);
+router.post("/login", loginUser);
+router.get("/findUser/:userId", findUser);
+router.get("/getUsers", getUsers);
+
+module.exports = router;
+
+```
+
+```js 
+const userModel = require("../Models/userModel");
+const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const validator = require('validator');
+
+
+const createJWTToken = (_id) => {
+    const jwtKey = process.env.JWT_SECRET_KEY;
+
+    return jwt.sign(
+        { _id },
+        jwtKey,
+        { expiresIn: '3d' }
+    );
+}
+
+//From frontend we would be getting req (client to sever), we can access params.
+const registerUser = async (req, res) => {
+
+    try {
+
+        const { name, email, password } = req.body;
+
+        // Check if user already exists
+        let user = await userModel.findOne({ email });
+        if (user) return res.status(400).json("User with the given email already exists!");
+
+        // Check if any of the required fields is empty
+        if (!name || !email || !password) return res.status(400).json("All fields are required!");
+
+        // Validate the data
+        if (!validator.isEmail(email)) return res.status(400).json("Email must be a valid email");
+        if (!validator.isStrongPassword(password)) return res.status(400).json("Password must be a strong password");
+
+        // Create a new user instance
+        user = new userModel({ name, email, password });
+
+        // Generate a salt and hash the password before saving it to the database
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(user.password, salt);
+
+        // Save the user to the database
+        await user.save();
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name, email, token })
+    } catch (error) {
+        console.log("Error during creating User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        let user = await userModel.findOne({ email });
+
+        if (!user) return res.status(400).json("Invalid user or password!1");
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+
+        if (!isValidPassword) return res.status(400).json("Invalid user or password!2");
+
+        const token = createJWTToken(user._id);
+
+        res.status(200).json({ _id: user._id, name: user.name, email, token });
+    } catch (error) {
+        console.log("Error during Login User : ", error);
+        res.status(500).json(error)
+    }
+
+}
+
+
+const findUser = async (req, res) => {
+
+    try {
+        const userId = req.params.userId;
+
+        const user = await userModel.findById(userId);
+        if (!user) return res.status(200).json("cannot find user")
+        return res.status(200).json(user);
+
+    } catch (error) {
+        console.log("Error during Finding User : ", error);
+        res.status(500).json(error)
+    }
+}
+
+
+const getUsers = async (req, res) => {
+
+    try {
+        const users = await userModel.find();
+        if (!users) return res.status(200).json("cannot get all users")
+        return res.status(200).json(users);
+
+    } catch (error) {
+        console.log("Error during getting all Users : ", error);
+        res.status(500).json(error)
+    }
+}
+
+module.exports = { registerUser, loginUser, findUser, getUsers }
+
+```
+
+<hr>
+
+
+## Client Side coding
+
+`npm create vite@latest . `
+
+
+`npm i react-router-dom`
+
+react-router-dom
+react-router-dom is a library for implementing routing in React applications. Routing allows you to navigate between different components in your application based on the URL. This library is particularly useful for creating single-page applications (SPAs) where you want to update the content of the page without a full page reload.
+
+
+```js
+//App.jsx
+
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+
+function App() {
+  return (
+    <>
+      <Routes>
+        <Route path='/' element={<Chat />} />
+        <Route path='/login' element={<Login />} />
+        <Route path='/register' element={<Register />} />
+        <Route path='*' element={<Navigate to='/' />} />
+      </Routes >
+    </>
+  )
+}
+
+export default App
+
+
+```
+### Explanation:
+
+#### Routes and Route Components:
+
+- The `Routes` component is a container for multiple `Route` components.
+- `Route` components define the mapping between a URL path and a React component to render.
+- In your code, you have three routes:
+  - `'/'` path maps to the `Chat` component.
+  - `'/login'` path maps to the `Login` component.
+  - `'/register'` path maps to the `Register` component.
+
+#### Navigate Component:
+
+- The `Navigate` component is used to perform client-side navigation. In this case, if the user visits any route that is not explicitly defined (`'*'`), they will be redirected to the `'/'` (Chat) route.
+
+
+```js 
+// main.jsx
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { BrowserRouter } from 'react-router-dom' //Import
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter> //Imp change to wrap it 
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+)
+
+```
+### Explanation:
+
+#### React.StrictMode:
+
+- Wraps your entire app in strict mode. It helps catch common bugs and can help you write more reliable components.
+
+#### BrowserRouter:
+
+- Provides the routing infrastructure for your app. It enables the use of the `Routes` and `Route` components in your application.
+
+#### ReactDOM.createRoot:
+
+- It is used to create a root for the React application. It's part of the new concurrent rendering API introduced in React.
+
+#### React Router-DOM:
+
+- `react-router-dom` is a library for declarative routing in React applications.
+- It enables navigation among views of various components in a React Application, allows changing the browser URL, and keeps UI in sync with the URL.
+
+#### Components:
+
+- `BrowserRouter`: Provides the context for routing in your application.
+- `Routes`: Acts as a switch statement for rendering different components based on the current URL.
+- `Route`: Defines a route mapping between a URL path and a component to render.
+- `Navigate`: Used for navigation and redirection.
+
+This setup allows you to create a multi-page React application with different components rendered based on the URL. The `react-router-dom` library helps manage client-side navigation and keeps your UI in sync with the URL.
+
+
+
+Bootstrap config -- pending
+<hr>
+
+Added container 
+
+```js 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css'; //Import
+import { Container } from 'react-bootstrap' //Import
+
+function App() {
+  return (
+    <>
+      <Container> //Changes made
+        <Routes>
+          <Route path='/' element={<Chat />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='*' element={<Navigate to='/' />} />
+        </Routes >
+      </Container>
+    </>
+  )
+}
+
+export default App
+
+```
+### NavBar
+
+```js 
+import React from 'react'
+import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+
+export const NavBar = () => {
+    return (
+        <>
+            <Navbar className="mb-4 myCustomNavbar">
+                <Container>
+                    <Link to='/' className='text-decoration-none'>
+                        <h2 className='pulseChatHeading'>
+                            PulseChat
+                        </h2>
+                    </Link>
+                    <span>Welcome, Manish Singh! 😎</span>
+                    <Nav>
+                        <Stack direction='horizontal' gap={3}>
+                            <Link to='/login' className='text-decoration-none'>
+                                <h6 className='pulseChatHeading '>
+                                    Login
+                                </h6>
+                            </Link>
+                            <Link to='/register' className='text-decoration-none'>
+                                <h6 className='pulseChatHeading'>
+                                    Register
+                                </h6>
+                            </Link>
+                        </Stack>
+                    </Nav>
+                </Container>
+            </Navbar>
+        </>
+    )
+}
+
+```
+
+## Import Statements:
+
+- **react-bootstrap:** Used for importing components from the React Bootstrap library to handle styling and layout.
+- **Link:** Imported from `react-router-dom` to enable navigation within your React app.
+
+## Navbar Structure:
+
+- **Navbar:** The primary navigation container.
+- **Container:** Wraps the content inside the Navbar to control the width and provide spacing.
+
+## Logo (PulseChat):
+
+- **Link to='/':** Creates a link to the home page. The `text-decoration-none` class removes the default underline.
+- **h2 className='pulseChatHeading':** Heading with a class for styling. You can define styles for `pulseChatHeading` in your CSS.
+
+## Navigation Links:
+
+- **Nav:** The container for navigation links.
+- **Stack direction='horizontal' gap={3}:** A horizontal stack to arrange login and register links with a gap of 3.
+
+## Login and Register Links:
+
+- **Link to='/login':** Creates a link to the login page with a styled heading.
+- **Link to='/register':** Creates a link to the register page with a styled heading.
+
+
+<hr>
+
+
+Lets start working on crfeating registration Page,login Page
+
+```js 
+//Register.jsx
+import React, { useEffect } from "react";
+import { Form, Button, Stack, Row, Col } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+         document.body.style = '';
+    //   document.body.style.backgroundImage = '';
+    //   document.body.style.backgroundSize = '';
+    //   document.body.style.backgroundRepeat = '';
+    //   document.body.style.backgroundPosition = '';
+    //   document.body.style.backgroundColor = '';
+    };
+  }, []);
+
+  return (
+    <Form className="mt-md-5">
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              Register
+            </Button>
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+//Without Responsive
+
+// import React, { useEffect } from "react"
+// import { Container, Card, Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+// import backgroundImage from '../assets/messageBG.jpg'
+
+// export const Register = () => {
+
+//   useEffect(() => {
+//     document.body.style.backgroundImage = `url(${backgroundImage})`;
+//     document.body.style.backgroundSize = 'contain';
+//     document.body.style.backgroundRepeat = 'no-repeat';
+//     document.body.style.backgroundPosition = 'right';
+//     document.body.style.backgroundColor = '#ffff';
+//     return () => {
+//       document.body.style.backgroundImage = '';
+//       document.body.style.backgroundSize = '';
+//       document.body.style.backgroundRepeat = '';
+//       document.body.style.backgroundPosition = '';
+//       document.body.style.backgroundColor = '#ffff';
+//     };
+//   }, [])
+
+
+//   return (
+//     <>
+//       <Form className="mt-5">
+//         <Row style={{ justifyContent: "left" }}>
+//           <Col className="form" xs={6}>
+//             <Stack gap={2}>
+//               <h2 style={{ padding: '20px', textAlign: "center" }}>Register</h2>
+//               <Form.Label >Name</Form.Label>
+//               <Form.Control type="text" placeholder="Name"></Form.Control>
+//               <Form.Label>Email</Form.Label>
+//               <Form.Control type="email" placeholder="Email"></Form.Control>
+//               <Form.Label>Password</Form.Label>
+//               <Form.Control type="password" placeholder="Password"></Form.Control>
+//               <Button className="mt-3 mb-3" variant="primary" type="submit">Register</Button>
+//               {/* <Alert variant="danger"><p>An error occured!</p></Alert> */}
+//             </Stack>
+//           </Col>
+//         </Row>
+//       </Form>
+//     </>
+//   )
+// }
+
+```
+
+
+```js 
+//Login
+
+import React, { useEffect } from "react"
+import { Container, Card, Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+import backgroundImage from '../assets/messageBG2.jpg'
+
+export const Login = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'left';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, [])
+
+
+  return (
+    <>
+      <Form className="mt-5">
+        <Row style={{ justifyContent: "right" }}>
+          <Col className="form" xs={6} >
+            <Stack gap={2}>
+              <h2 style={{ padding: '20px', textAlign: "center" }}>Login</h2>
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" placeholder="Email"></Form.Control>
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" placeholder="Password"></Form.Control>
+              <Button className="mt-3 mb-3" variant="primary" type="submit">Login</Button>
+              {/* <Alert variant="danger"><p>An error occured!</p></Alert> */}
+            </Stack>
+          </Col>
+        </Row>
+      </Form>
+    </>
+  )
+}
+
+```
+
+
+Now lets create userAuthContext to pass the data, required by the components
+
+Create Folder in src as context and file name as AuthContext.jsx
+
+```js 
+//AuthContext.jsx
+
+import { createContext, useState } from "react";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({children}) => {
+    const [user, setUser] = useState({
+        name : "Charles",
+    });
+
+
+    return (
+        <AuthContext.Provider value = {{user,}}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+```js 
+//main.jsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import './index.css'
+import { BrowserRouter } from 'react-router-dom'
+import { AuthContextProvider } from './context/AuthContext.jsx'
+
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <AuthContextProvider>
+        <App />
+      </AuthContextProvider>
+    </BrowserRouter>
+  </React.StrictMode>,
+)
+
+```
+
+# Using the Context API in React
+
+The Context API in React is a mechanism for managing the state of your application and making that state accessible to all components without the need to manually pass it down through props at every level. Here's a breakdown of the steps involved in using the Context API:
+
+## 1. Create a Context:
+
+Use `createContext` from React to create a new context. This context, for example, `AuthContext`, will be employed to provide and consume the authentication state.
+
+## 2. Create a Context Provider:
+
+Develop a component that acts as the provider for the context. This component will hold the state you want to share. In this example, `AuthContextProvider` is a wrapper component responsible for providing the authentication state (user) to its children.
+
+## 3. Wrap Your App with the Context Provider:
+
+In your main `index.js` or `App.js` file, encompass your entire application or the relevant part of it with the context provider. This ensures that the authentication context is available to all components within the `AuthContextProvider`.
+
+## 4. Consume the Context:
+
+In any component that requires access to the authentication state, utilize the `useContext` hook.
+
+
+```js 
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
+
+const SomeComponent = () => {
+    const { user } = useContext(AuthContext);
+
+    // Now, 'user' contains the authentication state.
+    // Use it as needed.
+};
+
+```
+# Accessing Context State with `useContext` Hook
+
+To access the state provided by the `AuthContextProvider` in any component within its subtree, you can use the `useContext` hook.
+
+The Context API is particularly valuable for managing global state, such as authentication, theming, or any data that needs to be shared across numerous components. It effectively eliminates prop drilling and provides a more elegant and efficient way to access shared state.
+
+## Implementation Steps:
+
+1. **Create a Context Skeleton in AuthContext.jsx:**
+   - Define the initial skeleton of data using `useState` in `AuthContext.jsx`.
+   - Include a setter function (`setUserData`) to update the data.
+
+2. **Pass Data to Register.jsx:**
+   - To pass the `setUserData` function to `Register.jsx`, use it as a callback function.
+   - `Register.jsx` can then utilize this function to update the data within the authentication context.
+
+By following this approach, you establish a mechanism to manage and share user-related data, such as registration information, across components.
+
+```js 
+//AuthContext.jsx
+import { createContext, useState } from "react";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, [])
+
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+
+```js 
+import React, { useContext, useEffect } from "react";
+import { Form, Button, Stack, Row, Col } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+import { AuthContext } from "../context/AuthContext";
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { registerInfo, updateRegisterInfo } = useContext(AuthContext);
+  console.log(registerInfo)
+
+  return (
+    <Form className="mt-md-5">
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" onChange={(e) => updateRegisterInfo({ ...registerInfo, name: e.target.value })} />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" onChange={(e) => updateRegisterInfo({ ...registerInfo, email: e.target.value })} />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" onChange={(e) => updateRegisterInfo({ ...registerInfo, password: e.target.value })} />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              Register
+            </Button>
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+```
+
+
+# Register User Functionality
+
+## Overview:
+
+To implement the "Register" button functionality, a sequence of actions needs to be performed:
+
+1. **User Clicks Register Button:**
+   - The user clicks the "Register" button in the application UI.
+
+2. **AuthContext Function Triggered:**
+   - The `registerUser` function in `AuthContext` is triggered in response to the button click.
+
+3. **Service.js Function Triggered:**
+   - The `registerUser` function in `service.js` (located in the Util folder) is invoked from `AuthContext`.
+
+4. **API Call to Backend:**
+   - The `registerUser` function in `service.js` makes an API call to the backend, sending the required data.
+
+5. **Backend Response:**
+   - The backend processes the registration request and returns a response (e.g., OK or Not OK).
+
+6. **Data Sent Back to Components:**
+   - The response from the backend is sent back to the components involved in the registration process.
+
+## Implementation Steps:
+
+1. **Declare Variables:**
+   - Declare any necessary variables, including state variables using `useState` if needed.
+
+2. **AuthContext Function (`registerUser`):**
+   - Implement the `registerUser` function in `AuthContext` to trigger the service function.
+
+3. **Service.js Function (`registerUser`):**
+   - Implement the `registerUser` function in `service.js` to make the API call to the backend.
+
+4. **Handle Backend Response:**
+   - Handle the response from the backend within the `registerUser` function in `service.js`.
+
+5. **Send Data Back to Components:**
+   - Ensure that the data (response or other relevant information) is sent back to the components that triggered the registration process.
+
+By following these steps, you establish the flow for registering a user, making use of the `AuthContext` and `service.js` for managing state and handling API calls, respectively.
+
+```js 
+//services.js
+export const baseUrl = "http://localhost:5002/api";
+
+export const postRequest = async (url, body) => {
+    const response = await fetch(url, {
+        method: "POST",
+        headers: {
+            'content-type': 'application/json'
+        },
+        body,
+    });
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+    const data = await response.json();
+
+    return data;
+}
+```
+
+Now lets make change in AuthContext
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, [])
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo])
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+```
+
+
+```js 
+//Register.jsx
+
+import React, { useContext, useEffect } from "react";
+import { Form, Button, Stack, Row, Col, Alert } from "react-bootstrap";
+import backgroundImage from '../assets/messageBG.jpg';
+import { AuthContext } from "../context/AuthContext";
+
+export const Register = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'right';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading } = useContext(AuthContext);
+  console.log(registerInfo)
+
+  return (
+    <Form className="mt-md-5" onSubmit={registerUser}>
+      <Row className="justify-content-md-left">
+        <Col className="form" xs={12} md={6}>
+          <Stack gap={2} className="mx-auto">
+            <h2 className="p-md-4 text-center">Register</h2>
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" placeholder="Name" onChange={(e) => updateRegisterInfo({ ...registerInfo, name: e.target.value })} />
+            <Form.Label>Email</Form.Label>
+            <Form.Control type="email" placeholder="Email" onChange={(e) => updateRegisterInfo({ ...registerInfo, email: e.target.value })} />
+            <Form.Label>Password</Form.Label>
+            <Form.Control type="password" placeholder="Password" onChange={(e) => updateRegisterInfo({ ...registerInfo, password: e.target.value })} />
+            <Button className="mt-3 mb-3" variant="primary" type="submit">
+              {isRegisterLoading ? 'creating your account...' : "Register"}
+            </Button>
+            {registerError?.error && <Alert variant="danger"><p>{registerError?.message}</p></Alert>}
+          </Stack>
+        </Col>
+      </Row>
+    </Form>
+  );
+};
+
+```
+<hr>
+
+# Persistent User Authentication
+
+## Overview:
+
+To achieve persistent user authentication and keep the user logged in even after a page refresh, the `useEffect` hook in `AuthContext.jsx` can be utilized. This involves checking for an existing authentication token and setting the user state accordingly.
+
+## Implementation Steps:
+
+1. **Check for Existing Token:**
+   - In the `useEffect` hook of `AuthContext.jsx`, check for the existence of an authentication token in a persistent storage mechanism (e.g., localStorage or sessionStorage).
+
+2. **Set User State:**
+   - If a token is found, use it to fetch user information from the backend and set the user state in `AuthContext`.
+
+3. **Keep User Authenticated:**
+   - By setting the user state based on the existing token, the user remains authenticated even after a page refresh.
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useEffect, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    console.log("Userr", user); //Output : {_id: '655f48ad48be6b7c927ea038', name: 'Ram', email: 'ram@gmail.com', token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2N…U0MX0.OsoGTKvZo6cUT-lTAHQJtj1wlBYrk5UTj1KnISdxQQc'}
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, []);
+
+    useEffect(() => {
+        const user = localStorage.getItem("User");
+
+        setUser(JSON.parse(user));
+    }, []);
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo])
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+
+Now if user Data exist,we need to Route it to chat Page.Its simple can be done by conditional rendering in app.jsx
+
+```js 
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container } from 'react-bootstrap'
+import { NavBar } from './components/NavBar';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
+
+function App() {
+  const { user } = useContext(AuthContext)
+
+  return (
+    <>
+      <NavBar></NavBar>
+      <Container>
+        <Routes>
+          <Route path='/' element={user ? <Chat /> : <Login />} />
+          <Route path='/login' element={user ? <Chat /> : <Login />} />
+          <Route path='/register' element={user ? <Chat /> : <Register />} />
+          <Route path='*' element={<Navigate to='/' />} />
+        </Routes >
+      </Container>
+    </>
+  )
+}
+
+export default App
+
+```
+
+Also made code change in NavBar.jsx
+When user logged in, we need to see 'Logout' instead of 'Login' and 'Register'
+Also we dont need to render Span
+
+
+```js 
+import React, { useContext } from 'react'
+import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import pulseLogo from '../assets/pulseLogo.png'
+import { AuthContext } from '../context/AuthContext';
+
+export const NavBar = () => {
+    const { user, logoutUser } = useContext(AuthContext);
+
+    return (
+        <>
+            <Navbar border="success" className="mb-4 myCustomNavbar">
+                <Container>
+                    <Link to='/' className='text-decoration-none'>
+                        <h2 className='navBarHeading'>
+                            PulseChat
+                            <img src={pulseLogo} style={{ width: '30px' }}></img>
+                        </h2>
+                    </Link>
+                    {user && <span>Welcome, {user?.name}! 😎</span>}
+                    <Nav>
+                        <Stack direction='horizontal' gap={3}>
+                            {user && (<>
+                                <Link onClick={() => logoutUser()} to='/login' className='text-decoration-none'>
+                                    <h6 className='navBarHeading '>
+                                        Logout
+                                    </h6>
+                                </Link>
+                            </>)}
+                            {!user && (
+                                <>
+                                    <Link to='/login' className='text-decoration-none'>
+                                        <h6 className='navBarHeading '>
+                                            Login
+                                        </h6>
+                                    </Link>
+                                    <Link to='/register' className='text-decoration-none'>
+                                        <h6 className='navBarHeading'>
+                                            Register
+                                        </h6>
+                                    </Link>
+                                </>
+                            )}
+                        </Stack>
+                    </Nav>
+                </Container>
+            </Navbar>
+        </>
+    )
+}
+
+```
+
+
+Similar changes done for LoginUser
+
+```js 
+//AuthContext.jsx
+import { createContext, useCallback, useEffect, useState } from "react";
+import { baseUrl, postRequest } from "../utils/services";
+
+export const AuthContext = createContext();
+
+export const AuthContextProvider = ({ children }) => {
+    const [user, setUser] = useState(null);
+
+    // ***************************************************************
+    //Register
+    const [registerError, setRegisterError] = useState(null);
+    const [isRegisterLoading, setIsRegisterLoading] = useState(false);
+
+    //Skeleton to be passed to Register.jsx and get the info and setIt.
+    const [registerInfo, setRegisterInfo] = useState({
+        name: "",
+        email: "",
+        password: ""
+    })
+
+    console.log("Userr", user);
+
+    const updateRegisterInfo = useCallback((info) => {
+        setRegisterInfo(info);
+    }, []);
+
+    const registerUser = useCallback(async (e) => {
+        e.preventDefault();
+
+        setIsRegisterLoading(true);
+        setRegisterError(null);
+
+        const response = await postRequest(`${baseUrl}/user/register`, JSON.stringify(registerInfo));
+
+        setIsRegisterLoading(false);
+
+        if (response.error) {
+            return setRegisterError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response);
+    }, [registerInfo]);
+
+
+    // ***************************************************************
+    //Login
+    //Skeleton to be passed to Login.jsx and get the info and setIt.
+    const [loginError, setLoginError] = useState(null);
+    const [isLoginLoading, setIsLoginLoading] = useState(false);
+
+
+    const [loginInfo, setLoginInfo] = useState({
+        email: "",
+        password: ""
+    });
+
+
+    const updateLoginInfo = useCallback((info) => {
+        setLoginInfo(info);
+    }, []);
+
+    const loginUser = useCallback((async (e) => {
+        e.preventDefault();
+        setIsLoginLoading(true);
+        setLoginError(null);
+
+        const response = await postRequest(`${baseUrl}/user/login`, JSON.stringify(loginInfo));
+
+        setIsLoginLoading(false);
+
+        if (response.error) {
+            return setLoginError(response)
+        }
+
+        localStorage.setItem('User', JSON.stringify(response))
+        setUser(response)
+
+    }), [loginInfo])
+
+
+
+    //*****************************************************
+    // LocalStorage 
+
+    useEffect(() => {
+        const user = localStorage.getItem("User");
+        setUser(JSON.parse(user));
+    }, []);
+
+
+
+    //*****************************************************
+    // Logout
+    const logoutUser = () => {
+        localStorage.removeItem("User");
+        setUser(null);
+        setRegisterInfo(register);
+        setLoginInfo(login);
+    }
+    // *********************************************************************************
+
+
+    console.log("registerInfo", registerInfo);
+    console.log("loginInfo", loginInfo);
+
+    return (
+        <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading, logoutUser, loginInfo, updateLoginInfo, loginUser, loginError, isLoginLoading }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+
+```
+
+```js
+//Login
+
+import React, { useContext, useEffect } from "react"
+import { Form, Button, Alert, Stack, Row, Col } from "react-bootstrap"
+import backgroundImage from '../assets/messageBG2.jpg'
+import { AuthContext } from "../context/AuthContext";
+
+export const Login = () => {
+
+  useEffect(() => {
+    document.body.style.backgroundImage = `url(${backgroundImage})`;
+    document.body.style.backgroundSize = 'contain';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundPosition = 'left';
+    document.body.style.backgroundColor = '#ffff';
+    return () => {
+      document.body.style = '';
+    };
+  }, []);
+
+  const { loginInfo, updateLoginInfo, loginUser, loginError, isLoginLoading } = useContext(AuthContext)
+
+
+  return (
+    <>
+      <Form className="mt-5" onSubmit={loginUser}>
+        <Row style={{ justifyContent: "right" }}>
+          <Col className="form" xs={6} >
+            <Stack gap={2}>
+              <h2 style={{ padding: '20px', textAlign: "center" }}>Login</h2>
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" placeholder="Email" onChange={(e) => updateLoginInfo({ ...loginInfo, email: e.target.value })}></Form.Control>
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" placeholder="Password" onChange={(e) => updateLoginInfo({ ...loginInfo, password: e.target.value })}></Form.Control>
+              <Button className="mt-3 mb-3" variant="primary" type="submit">{isLoginLoading ? "Logging in.." : "Login"}</Button>
+              {loginError && <Alert variant="danger"><p>{loginError?.message}</p></Alert>}
+            </Stack>
+          </Col>
+        </Row>
+      </Form>
+    </>
+  )
+}
+
+```
+<hr>
+
+# Chat Functionality
+
+## Client-Side Changes:
+### 1. Create Chat (New Chat):
+### 2. Get List of Chats in UI (Stack):
+### 3. Find Chat:
+
+![Alt text](image.png);
+
+## Server-Side Changes:
+
+### ServerSide changes:
+need to create new Model for chat.
+
+```js 
+//chatModel.js
+
+const mongoose = require("mongoose");
+
+const chatSchema = new mongoose.Schema({
+    members: Array,
+}, {
+    timeStamps: true
+});
+
+
+const chatModel = mongoose.model("chat", chatSchema);
+
+module.exports = chatModel;
+
+```
+
+# Chat Controller
+
+## Functions:
+
+### 1. Create Chat (`createChat`):
+
+- Implement a function to create a new chat.
+- Receive necessary data from the client, such as participants, chat name, or any other relevant information.
+- Validate the input data to ensure it meets the required criteria.
+- Utilize the chat model to create a new chat instance in the database.
+- Return an appropriate response to the client, indicating the success or failure of the chat creation.
+
+### 2. Get User Chats (`getUserChats`):
+
+- Implement a function to retrieve the list of chats associated with a specific user.
+- Accept the user's identifier (e.g., user ID) as a parameter.
+- Use the chat model to query the database for chats involving the specified user.
+- Return the list of user-specific chats to the client.
+
+### 3. Get Chat (`getChat`):
+
+- Implement a function to fetch the details of a specific chat.
+- Receive the chat identifier (e.g., chat ID) as a parameter.
+- Use the chat model to retrieve the chat details from the database.
+- Include information such as participants, messages, timestamps, etc., in the response.
+- Send the chat details back to the client.
+
+These controller functions handle the core chat-related operations, enabling the server to create new chats, fetch user-specific chat lists, and retrieve details of individual chats.
+
+
+```js 
+//chatController.js 
+const chatModel = require('../Models/chatModel')
+
+//createChat
+//getUserChats
+//getChat
+
+
+const createChat = async (req, res) => {
+    const { firstId, secondId } = req.body;
+    try {
+
+        const chat = await chatModel.findOne({
+            members: { $all: [firstId, secondId] }
+        });
+
+        if (chat) return res.status(200).json(chat);
+
+        const newChat = new chatModel({
+            members: [firstId, secondId],
+        });
+
+        const response = await newChat.save();
+
+        res.status(200).json(response);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+
+const getUserChats = async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const chats = await chatModel.find({
+            members: { $in: [userId] },
+        })
+
+        if (chats) return res.status(200).json(chats);
+
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+
+const getChat = async (req, res) => {
+    const { firstId, secondId } = req.params;
+
+    try {
+        const chat = await chatModel.findOne({
+            members: { $all: [firstId, secondId] }
+        });
+
+        res.status(200).json(chat);
+
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+module.exports = { createChat, getUserChats, getChat }
+```
+
+
+```js 
+//chatRoutes.js
+
+const express = require("express");
+const router = express.Router();
+const { createChat, getUserChats, getChat } = require("../Controllers/chatController");
+
+
+router.post("/", createChat);
+router.get("/:userId", getUserChats);
+router.get("/get/:firstId/:secondId", getChat);
+
+module.exports = router;
+```
+
+```js 
+//server.js
+const express = require('express');
+const cors = require('cors');
+const app = express();
+const mongoose = require("mongoose");
+const userRouter = require("./Routes/userRoute.js");
+const chatRouter = require("./Routes/chatRoute.js");
+const dotenv = require('dotenv');
+dotenv.config();
+
+const port = process.env.PORT || 5001;
+const uri = process.env.ATLAS_URI;
+
+app.use(cors());
+app.use(express.json());
+app.use("/api/user", userRouter);
+app.use("/api/chats", chatRouter); //This Change
+
+
+app.listen(port, (req, res) => {
+    console.log(`Server running on port ${port}`);
+});
+
+
+mongoose.connect(uri).then(() => {
+    console.log("MongoDB connection established")
+}).catch((error) => {
+    console.log("MongoDb Connection Failed:" + error.message)
+})
+
+```
+
+
+Now we need to work on messages
+createMesage
+getMessages
+
+```js
+// messageModel.js 
+const mongoose = require("mongoose");
+
+const messageSchema = new mongoose.Schema({
+    chatId: String,
+    senderId: String,
+    text: String
+}, {
+    timestamps: true
+});
+
+const messageModel = mongoose.model("message", messageSchema);
+
+module.exports = messageModel;
+```
+
+```js
+// messageController.js 
+const messageModel = require("../Models/messageModel");
+
+//createMesage
+//getMessages
+
+const createMessage = async (req, res) => {
+    const { chatId, senderId, text } = req.body;
+
+    try {
+        const message = new messageModel({
+            chatId, senderId, text
+        });
+
+        const response = await message.save();
+
+        res.status(200).json(response);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+const getMessages = async (req, res) => {
+    const { chatId } = req.params;
+
+    try {
+        const message = await messageModel.find({ chatId });
+        res.status(200).json(message);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+};
+
+
+module.exports = { createMessage, getMessages };
+```
+
+
+```js
+// message.Route.js 
+
+const express = require('express');
+const router = express.Router();
+const { createMessage, getMessages } = require('../Controllers/messageController');
+
+router.post("/", createMessage);
+router.get("/:chatId", getMessages);
+
+module.exports = router;
+
+```
+
+
+```js
+//index.js
+app.use("/api/message", messageRouter); 
+```
+
+<hr>
+
+Now we can work on creating fetch api in client Folder services.js
+
+
+```js 
+//services.js
+export const baseUrl = "http://localhost:5002/api";
+
+export const postRequest = async (url, body) => {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'content-type': 'application/json'
+        },
+        body,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+
+    return data;
+};
+
+
+export const getRequest = async (url) => {
+
+    const response = await fetch(url);
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        let message;
+
+        if (data?.message) {
+            message = data.message //our custom message thats defined in server folder(Backend)
+        } else {
+            message = data;
+        }
+
+        return { error: true, message };
+    }
+
+
+    return data;
+
+}
+```
+
+
+```js 
+//ChatContext.jsx
+import { createContext, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                isUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                isUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+```JS 
+//App.jsx
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { Chat } from './pages/Chat';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container } from 'react-bootstrap'
+import { NavBar } from './components/NavBar';
+import { useContext } from 'react';
+import { AuthContext } from './context/AuthContext';
+import { ChatContextProvider } from './context/ChatContext';
+
+function App() {
+  const { user } = useContext(AuthContext)
+
+  return (
+    <>
+      <ChatContextProvider user={user}> //Added this
+        <NavBar></NavBar>
+        <Container>
+          <Routes>
+            <Route path='/' element={user ? <Chat /> : <Login />} />
+            <Route path='/login' element={user ? <Chat /> : <Login />} />
+            <Route path='/register' element={user ? <Chat /> : <Register />} />
+            <Route path='*' element={<Navigate to='/' />} />
+          </Routes >
+        </Container>
+      </ChatContextProvider>
+    </>
+  )
+}
+
+export default App
+
+```
+<hr>
+
+Now lets make list of chatUsers
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        {userChats?.length < 1 ? null :
+          <Stack direction="horizontal" gap={3} className="align-item-start">
+            <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+              {isUserChatsLoading && <p>Loading Chats..</p>}
+              {userChats?.map((chat, index) => {
+                return (
+                  <div key={index}>
+                    <UserChats chat={chat} user={user}></UserChats>
+                  </div>
+                )
+              })}
+            </Stack>
+            <p>chatBox</p>
+          </Stack>
+        }
+      </Container>
+    </>
+  )
+}
+
+```
+
+```js 
+//UserChats.jsx
+
+import React from 'react'
+
+export const UserChats = ({chat, user}) => {
+  return (
+    <div>UserChats</div>
+  )
+}
+
+```
+<hr>
+
+So if you as a person is logged-in,you would like to see other user in list of userChats.
+
+So to do this we would be making use of custom hooks designed to get the recipients.
+
+created a folder hooks and add a filename as useFetchRecipient.js
+
+we are feeding it with chat and user associated with chat and try to get the userId other than the perdon loggedin.
+
+and trying to make api call toget the user info.(get user).
+
+```js 
+import { useState, useEffect } from "react";
+import { baseUrl, getRequest } from "../utils/services";
+
+
+export const useFetchRecipient = (chat, user) => {
+    const [recipientUser, setRecipientUser] = useState(null);
+    const [error, setError] = useState(null);
+
+    const recipientId = chat?.members.find((id) => id !== user?._id);
+
+    useEffect(() => {
+
+        const getUser = async () => {
+            if (!recipientId) return null;
+
+            const response = await getRequest(`${baseUrl}/user/findUser/${recipientId}`)
+
+            if (response.error) {
+                return setError(response);
+            }
+
+            setRecipientUser(response);
+        };
+
+        getUser();
+
+    }, []);
+
+    return { recipientUser }
+}
+```
+
+
+```js 
+//UserChats.jsx
+import React from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Stack } from 'react-bootstrap';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between">
+            <div className="d-flex">
+                <div className="me-2">
+                    A
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">TextMessage</div>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+![Alt text](image-1.png)
+
+
+Lets work on creating Potential user List.
+
+![Alt text](image-3.png);
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+    const [potentialChats, setPotentialChats] = useState([]);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+```js 
+//PotentialChats.jsx
+
+import React, { useContext } from 'react'
+import { ChatContext } from '../../context/ChatContext'
+
+const PotentialChats = () => {
+    const { potentialChats } = useContext(ChatContext);
+    console.log("potentialChats", potentialChats)
+    return (
+        <>
+            <div className='all-users'>
+                {potentialChats && potentialChats.map((user, index) => {
+                    return (
+                        <>
+                            <div className="single-user" key={index}>
+                                {user.name}
+                                <span className="user-online"></span>
+                            </div>
+                        </>
+                    )
+                })}
+            </div>
+        </>
+    )
+}
+
+export default PotentialChats
+```
+
+```js
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          <PotentialChats />
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+              <p>chatBox</p>
+            </>
+          }
+        </Stack>
+      </Container>
+    </>
+  )
+}
+
+```
+
+
+
+CreateChat when clicked on potential userList
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+    const [potentialChats, setPotentialChats] = useState([]);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+```
+
+```js 
+//PotentialChats.jsx
+
+import React, { useContext } from 'react'
+import { ChatContext } from '../../context/ChatContext'
+import { AuthContext } from '../../context/AuthContext';
+
+const PotentialChats = () => {
+    const { potentialChats, createChat } = useContext(ChatContext);
+    const { user } = useContext(AuthContext)
+    console.log("potentialChats", potentialChats)
+    return (
+        <>
+            <div className='all-users'>
+                {potentialChats && potentialChats.map((u, index) => {
+                    return (
+                        <>
+                            <div className="single-user" key={index} onClick={(e) => createChat(user._id, u._id)}>
+                                {u.name}
+                                <span className="user-online"></span>
+                            </div>
+                        </>
+                    )
+                })}
+            </div>
+        </>
+    )
+}
+
+export default PotentialChats
+```
+
+
+Now when clicked on specific list of chats we need to see conversations
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+    console.log("currentChat",currentChat); //We get Chat id and the 2 members id.
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+    
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    }
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading, updateCurrentChat } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          <PotentialChats />
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index} onClick={() => { updateCurrentChat(chat) }}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+              <p>chatBox</p>
+            </>
+          }
+        </Stack>
+      </Container>
+    </>
+  )
+}
+
+```
+
+
+
+We have access to chat id, now we can make a call to get the conversations.
+
+```js
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessage] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    console.log("messages", messages)
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessage(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+<hr>
+
+
+Now lets work on Messages,when clicked on specific chat it should display chatBox components.
+
+![Alt text](image-4.png)
+
+![Alt text](image-5.png)
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessage] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    console.log("messages", messages)
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessage(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+
+```js 
+//Chat.jsx
+
+import React, { useContext } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { Container, Stack } from "react-bootstrap"
+import { UserChats } from "../components/Chats/UserChats";
+import { AuthContext } from "../context/AuthContext";
+import PotentialChats from "../components/Chats/PotentialChats";
+import { ChatBox } from "../components/Chats/ChatBox";
+
+export const Chat = () => {
+  const { user } = useContext(AuthContext);
+  const { userChats, userChatsError, isUserChatsLoading, updateCurrentChat } = useContext(ChatContext);
+
+  console.log(userChats, userChatsError, isUserChatsLoading);
+  return (
+    <>
+      <Container>
+        <Stack direction="horizontal" gap={3} className="align-items-start">
+          {userChats?.length < 1 ? null :
+            <>
+              <Stack className="flex-grow-0 message-box pe-3" gap={3}>
+                {isUserChatsLoading && <p>Loading Chats..</p>}
+                {userChats?.map((chat, index) => {
+                  return (
+                    <div key={index} onClick={() => { updateCurrentChat(chat) }}>
+                      <UserChats chat={chat} user={user}></UserChats>
+                    </div>
+                  )
+                })}
+              </Stack>
+            </>
+          }
+          <ChatBox/>
+          <PotentialChats />
+        </Stack>
+      </Container>
+    </>
+  )
+}
+```
+
+```js 
+import React, { useContext } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Stack } from 'react-bootstrap';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+            </Stack>
+        </>
+    )
+}
+
+```
+<hr>
+
+Now lets work on displaying text messages,
+
+need to install packages `npm i moment`
+
+```js 
+import React, { useContext } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Stack } from 'react-bootstrap';
+import moment from 'moment';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+
+    console.log("recipientUser1", recipientUser);
+    console.log("currentChat1", currentChat);
+    console.log("user1", user);
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+                <Stack gap={3} className="messages">
+                    {messages && messages.map((message, index) => {
+                        return (
+                            <Stack key={index} className={`${message?.senderId === user?._id ? "message self align-self-end flex-grow-0" : "message align-self-start flex-grow-0"}`}>
+                                <span >{message.text}</span>
+                                <span className="message-footer">{moment(message.createdAt).calendar()}</span>
+                            </Stack>
+                        )
+                    })}
+                </Stack>
+            </Stack>
+        </>
+    )
+}
+
+```
+
+
+![Alt text](image-6.png)
+
+
+
+Lets Work on creating send message, store them in db.
+
+`npm i react-input-emoji`
+
+```js
+import React, { useContext, useState } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Button, Stack } from 'react-bootstrap';
+import moment from 'moment';
+import InputEmoji from 'react-input-emoji';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading, sendTextMessage } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+    const [textMessage, setTextMessage] = useState("");
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+
+    console.log("recipientUser1", recipientUser);
+    console.log("currentChat1", currentChat);
+    console.log("user1", user);
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+                <Stack gap={3} className="messages">
+                    {messages && messages.map((message, index) => {
+                        return (
+                            <Stack key={index} className={`${message?.senderId === user?._id ? "message self align-self-end flex-grow-0" : "message align-self-start flex-grow-0"}`}>
+                                <span >{message.text}</span>
+                                <span className="message-footer">{moment(message.createdAt).calendar()}</span>
+                            </Stack>
+                        )
+                    })}
+                </Stack>
+                <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
+                    <InputEmoji value={textMessage} onChange={setTextMessage}>
+                    </InputEmoji>
+                    <button className="send-btn" onClick={() => sendTextMessage(textMessage, user, currentChat._id, setTextMessage)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-send-fill" viewBox="0 0 16 16">
+                            <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                        </svg>
+                    </button>
+                </Stack>
+            </Stack>
+        </>
+    )
+}
+
+```
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
+        if (!textMessage) return null;
+        const response = await postRequest(`${baseUrl}/message`, JSON.stringify({
+            chatId: currentChatId,
+            senderId: sender._id,
+            text: textMessage
+        }));
+
+        if (response.error) {
+            return setSendTextMessageError(response);
+        }
+
+        setNewMessage(response);
+        setMessages((prev) => [...prev, response]);
+        setTextMessage("");
+
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+```
+
+
