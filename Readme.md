@@ -3744,3 +3744,1920 @@ export const ChatContextProvider = ({ children, user }) => {
 ```
 
 
+Lets work on Socket.io - Realtime recieving and sending messages and seeing the updates on clients PC
+
+Socket.io is a JavaScript library for real-time web applications. It enables bidirectional communication between clients (e.g., web browsers) and servers. Socket.io simplifies the process of building real-time applications by providing a WebSocket-like API that works seamlessly across various platforms and browsers.
+
+Here are some key features and concepts related to Socket.io:
+
+Real-Time Communication:
+
+Socket.io enables real-time, bidirectional communication between clients and servers.
+It uses WebSocket as the primary transport protocol, but it also provides fallback mechanisms (such as long polling) for environments where WebSocket may not be supported.
+Event-Based Communication:
+
+Communication in Socket.io is based on events. Clients and servers can emit events and listen for events from each other.
+Events can carry data, allowing the exchange of information between the client and server in a structured way.
+Rooms and Namespaces:
+
+Socket.io supports the concept of rooms, allowing you to group clients and broadcast messages to specific groups.
+Namespaces provide a way to create separate communication channels within the same application.
+Reconnection Handling:
+
+Socket.io includes built-in support for handling disconnections and reconnections. Clients can automatically attempt to reconnect to the server after a disconnection.
+Middleware Support:
+
+Socket.io supports middleware functions that can intercept and process events before they reach their final destination. This can be useful for authentication, logging, and other purposes.
+Integration with Express:
+
+Socket.io can be easily integrated with Express.js, a popular web application framework for Node.js.
+Here's a simple example of using Socket.io with Node.js and Express:
+
+```js 
+// Server-side (Node.js with Express)
+const express = require('express');
+const http = require('http');
+const socketIO = require('socket.io');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+io.on('connection', (socket) => {
+  console.log('A user connected');
+
+  // Listen for a custom event 'chat message'
+  socket.on('chat message', (msg) => {
+    console.log('Message:', msg);
+
+    // Broadcast the message to all connected clients
+    io.emit('chat message', msg);
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+});
+
+server.listen(3000, () => {
+  console.log('Server listening on port 3000');
+});
+
+```
+
+
+On the client side (in a web browser), you would use the Socket.io client library to establish a connection and emit/receive events.
+
+```js 
+<!-- Client-side (Browser) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+<script>
+  const socket = io();
+
+  // Emit a 'chat message' event
+  socket.emit('chat message', 'Hello, Socket.io!');
+
+  // Listen for 'chat message' events from the server
+  socket.on('chat message', (msg) => {
+    console.log('Received message:', msg);
+  });
+</script>
+
+```
+
+..\myProjects\chat-app\socket> npm init
+npm i socket.io
+
+
+..\myProjects\chat-app\client> npm install socket.io-client
+
+Basic setup done in code
+
+```js 
+// Socket index.js
+const { Server } = require("socket.io");
+
+// Create a new instance of Socket.io server with CORS configuration
+const io = new Server({ cors: "http://localhost:5173" });
+
+// Listen for new connections
+io.on("connection", (socket) => {
+    console.log("new Connection", socket.id);
+});
+
+// Start the Socket.io server on port 3000
+io.listen(3000);
+```
+
+on Client side
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+import { io } from "socket.io-client";
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+    // Client-side code using React (assuming it's part of a React component)
+    const [socket, setSocket] = useState(null);
+    
+    // UseEffect hook to establish a connection when the component mounts or when the 'user' dependency changes
+    useEffect(() => {
+        // Create a new Socket.io client instance and set it to the state
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
+    
+        // Cleanup function to disconnect the socket when the component unmounts or when the 'user' changes
+        return () => {
+            newSocket.disconnect();
+        };
+    }, [user]);
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+....
+
+```
+
+
+Explanation:
+
+Server-side (Socket index.js):
+
+Import the Server class from the "socket.io" library.
+Create a new instance of the Socket.io server (io) with CORS (Cross-Origin Resource Sharing) configuration, allowing connections from "http://localhost:5173."
+Listen for "connection" events, which occur when a client connects. Log the socket ID when a new connection is established.
+Start the Socket.io server and make it listen on port 3000.
+Client-side (React component):
+
+Use the useState hook to create a state variable socket and a function setSocket to update its value.
+Use the useEffect hook to perform side effects in the component. In this case, it establishes a connection to the Socket.io server when the component mounts or when the 'user' dependency changes.
+Inside the useEffect, create a new Socket.io client instance (newSocket) connecting to "http://localhost:3000" and set it to the state.
+Return a cleanup function that disconnects the socket when the component unmounts or when the 'user' changes. This helps prevent memory leaks and ensures a clean disconnect.
+
+
+This setup establishes a bidirectional communication channel between the server and clients using Socket.io. When a client connects (connection event), the server logs the connection, and the client creates a Socket.io instance. The server can emit events to clients, and clients can emit events to the server, enabling real-time communication. The client disconnects when the component unmounts.
+
+
+Now we work on to collect online users
+
+```js 
+const { Server } = require("socket.io");
+
+// Create a new instance of Socket.io server with CORS configuration
+const io = new Server({ cors: "http://localhost:5173" });
+
+// Array to store online users
+const onlineUsers = [];
+
+// Listen for new connections
+io.on("connection", (socket) => {
+    console.log("new Connection", socket.id);
+
+    // Listen to connection (Custom event: addNewUser)
+    socket.on("addNewUser", (userId) => {
+        // Check if the user is not already in the onlineUsers array
+        !onlineUsers.some((user) => user.userId === userId) &&
+            onlineUsers.push({
+                userId,
+                socketId: socket.id
+            });
+    });
+
+    console.log("OnlineUsers", onlineUsers);
+});
+
+// Start the Socket.io server on port 3000
+io.listen(3000);
+
+```
+Explanation (Server-Side):
+
+Socket Connection:
+
+const io = new Server({ cors: "http://localhost:5173" });: Creates a new instance of the Socket.io server with CORS configuration.
+Online Users Array:
+
+const onlineUsers = [];: Initializes an array (onlineUsers) to store information about online users.
+Connection Event:
+
+io.on("connection", (socket) => { ... });: Listens for a new connection event. When a client connects, the provided callback function is executed, and socket represents the connection to the individual client.
+addNewUser Event:
+
+socket.on("addNewUser", (userId) => { ... });: Listens for a custom event named "addNewUser." When a client emits this event, the provided callback function is executed, and it adds the user to the onlineUsers array.
+Online Users Logging:
+
+console.log("OnlineUsers", onlineUsers);: Logs the array of online users after handling the "addNewUser" event.
+
+
+```js 
+    //ChatContext.jsx
+    const [socket, setSocket] = useState(null);
+    
+    // Establish a socket connection when the component mounts
+    useEffect(() => {
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
+    
+        // Cleanup function to disconnect the socket when the component unmounts
+        return () => {
+            newSocket.disconnect();
+        }
+    }, [user]);
+    
+    // Emit "addNewUser" event when the socket is not null
+    useEffect(() => {
+        if (socket === null) return
+        socket.emit("addNewUser", user?._id)
+    }, [socket])
+
+```
+
+Socket State:
+
+const [socket, setSocket] = useState(null);: Initializes state to hold the Socket.io client instance.
+Socket Connection:
+
+useEffect(() => { ... }, [user]);: Uses the useEffect hook to establish a socket connection when the component mounts. It also includes a cleanup function to disconnect the socket when the component unmounts.
+Emitting "addNewUser" Event:
+
+useEffect(() => { ... }, [socket]);: Uses another useEffect hook to emit the "addNewUser" event when the socket is not null. This event is emitted with the user's ID (user?._id). It ensures that the event is emitted when the socket is ready to send messages.
+These setups allow the server to keep track of online users when they connect, and the client emits an "addNewUser" event upon establishing a connection. The server logs the online users, and the client emits the event with the user's ID when the socket is ready.
+
+
+changes made with logic to show user is online when logged in,once disconnets user is offline
+
+```js
+// Socket index.js
+const { Server } = require("socket.io");
+
+// Create a new instance of Socket.io server with CORS configuration
+const io = new Server({ cors: "http://localhost:5173" });
+let onlineUsers = [];
+
+// Listen for new connections
+io.on("connection", (socket) => {
+    console.log("new Connection", socket.id);
+
+    // Listen to connection (Custom)
+    socket.on("addNewUser", (userId) => {
+        // Include users that are not already present
+        !onlineUsers.some((user) => user.userId === userId) &&
+            onlineUsers.push({
+                userId,
+                socketId: socket.id
+            });
+
+        console.log("OnlineUsers", onlineUsers);
+
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+
+    socket.on("disconnect", () => {
+        onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+});
+
+// Start the Socket.io server on port 3000
+io.listen(3000);
+
+```
+
+```javascript
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+import { io } from "socket.io-client";
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    console.log("onlineUsers", onlineUsers)
+
+    // Establish a socket connection when the component mounts
+    useEffect(() => {
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
+
+        return () => {
+            newSocket.disconnect();
+        }
+    }, [user]);
+
+
+    //add Online Users
+    useEffect(() => {
+        if (socket === null) return;
+        socket.emit("addNewUser", user?._id);
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        })
+
+        return () => {
+            socket.off("getOnlineUsers");
+        }
+    }, [socket])
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                // localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
+        if (!textMessage) return null;
+        const response = await postRequest(`${baseUrl}/message`, JSON.stringify({
+            chatId: currentChatId,
+            senderId: sender._id,
+            text: textMessage
+        }));
+
+        if (response.error) {
+            return setSendTextMessageError(response);
+        }
+
+        setNewMessage(response);
+        setMessages((prev) => [...prev, response]);
+        setTextMessage("");
+
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+```javascript
+//PotentialChats.jsx
+
+import React, { useContext } from 'react'
+import { ChatContext } from '../../context/ChatContext'
+import { AuthContext } from '../../context/AuthContext';
+
+const PotentialChats = () => {
+    const { potentialChats, createChat, onlineUsers } = useContext(ChatContext);
+    const { user } = useContext(AuthContext);
+
+    return (
+        <div className='all-users'>
+            {potentialChats && potentialChats.map((u) => (
+                <div key={u._id} className="single-user" onClick={() => createChat(user._id, u._id)}>
+                    {u.name}
+                    <span className={onlineUsers.some((user) => (user?.userId === u?._id)) ? "user-online" : "user-offline"}></span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+export default PotentialChats;
+
+```
+
+```javascript
+//UserChats.jsx
+
+import React, { useContext } from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Container, Stack } from 'react-bootstrap';
+import avatar from '../../assets/avatar.svg'
+import { ChatContext } from '../../context/ChatContext';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+    const { onlineUsers } = useContext(ChatContext);
+
+    const isOnline = onlineUsers.some((user) => (user?.userId === recipientUser?._id));
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between" role="button">
+            <div className="d-flex">
+                <div className="me-2">
+                    <img src={avatar} style={{ width: '35px' }} />
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">TextMessage</div>
+                </div>
+            </div>
+            <div className="d-flex">
+                <div className="date">
+                    2022-11-24
+                    <div className="this-user-notifications">2</div>
+                    <span className={isOnline ? "user-online" : "user-offline"}></span>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+Now lets work on sending and receiving messages in Real-time
+
+```js 
+// Socket index.js
+const { Server } = require("socket.io");
+
+// Create a new instance of Socket.io server with CORS configuration
+const io = new Server({ cors: "http://localhost:5173" });
+let onlineUsers = [];
+
+// Listen for new connections
+io.on("connection", (socket) => {
+    console.log("new Connection", socket.id);
+
+    // Listen to connection (Custom)
+    socket.on("addNewUser", (userId) => {
+        // Include users that are not already present
+        !onlineUsers.some((user) => user.userId === userId) &&
+            onlineUsers.push({
+                userId,
+                socketId: socket.id
+            });
+
+        console.log("OnlineUsers", onlineUsers);
+
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+
+    //add message
+    socket.on("sendMessage",(message) => {
+        const user = onlineUsers.find((user) => user.userId === message.recipientId);
+
+        if(user){
+            io.to(user.socketId).emit("getMessage",message);
+        }
+    })
+
+    socket.on("disconnect", () => {
+        onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+});
+
+// Start the Socket.io server on port 3000
+io.listen(3000);
+
+```
+
+```js
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+import { io } from "socket.io-client";
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    console.log("onlineUsers", onlineUsers)
+
+    // Establish a socket connection when the component mounts
+    useEffect(() => {
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
+
+        return () => {
+            newSocket.disconnect();
+        }
+    }, [user]);
+
+
+    //add Online Users
+    useEffect(() => {
+        if (socket === null) return;
+        socket.emit("addNewUser", user?._id);
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        })
+
+        return () => {
+            socket.off("getOnlineUsers");
+        }
+    }, [socket]);
+
+    //send Message(socket.io)
+    useEffect(() => {
+        if (socket === null) return;
+        const recipientId = currentChat?.members.find((id) => id !== user?._id);
+        socket.emit("sendMessage", { ...newMessage, recipientId })
+    }, [newMessage]);
+
+    //recieve Message (socket.io)
+    useEffect(() => {
+        if (socket === null) return;
+        socket.on("getMessage", res => {
+            if (currentChat?._id !== res.chatId) return; //Avoid updating to unknown chat
+            setMessages((prev) => [...prev, res]);
+        });
+
+        return () => {
+            socket.off("getMessage");
+        }
+    }, [socket, currentChat])
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                // localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
+        if (!textMessage) return null;
+        const response = await postRequest(`${baseUrl}/message`, JSON.stringify({
+            chatId: currentChatId,
+            senderId: sender._id,
+            text: textMessage
+        }));
+
+        if (response.error) {
+            return setSendTextMessageError(response);
+        }
+
+        setNewMessage(response);
+        setMessages((prev) => [...prev, response]);
+        setTextMessage("");
+
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+Auto scroll to bottom or when new message Received.
+It wasnt working properly, the scroll was also getting triggred for whole body.
+There was partial workaround done in index.css. 
+
+```js 
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import { AuthContext } from '../../context/AuthContext'
+import { ChatContext } from '../../context/ChatContext';
+import { useFetchRecipient } from '../../hooks/useFetchRecipient';
+import { Stack } from 'react-bootstrap';
+import moment from 'moment';
+import InputEmoji from 'react-input-emoji';
+
+export const ChatBox = () => {
+    const { user } = useContext(AuthContext);
+    const { currentChat, messages, messagesError, isMessageLoading, sendTextMessage } = useContext(ChatContext);
+    const { recipientUser } = useFetchRecipient(currentChat, user);
+    const [textMessage, setTextMessage] = useState("");
+    const scroll = useRef();
+
+    useEffect(() => {
+        scroll.current?.scrollIntoView({ behaviour: "smooth" })
+    }, [messages])
+
+    if (!recipientUser) return (
+        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+    )
+
+    if (isMessageLoading) return (
+        <>
+            <p className="loading-chat-box">
+                Loading Messages...
+            </p>
+        </>
+    );
+
+    if (messagesError) return (
+        <p>Oops Something went wrong!</p>
+    )
+
+
+    console.log("recipientUser1", recipientUser);
+    console.log("currentChat1", currentChat);
+    console.log("user1", user);
+
+    return (
+        <>
+            <Stack className="chat-box">
+                <div className="chat-header">
+                    <strong>{recipientUser?.name}</strong>
+                </div>
+                <Stack gap={3} className="messages">
+                    {messages && messages.map((message, index) => {
+                        return (
+                            <Stack key={index} ref={scroll} className={`${message?.senderId === user?._id ? "message self align-self-end flex-grow-0" : "message align-self-start flex-grow-0"}`} >
+                                <span >{message.text}</span>
+                                <span className="message-footer">{moment(message.createdAt).calendar()}</span>
+                            </Stack>
+                        )
+                    })}
+                </Stack>
+                <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
+                    <InputEmoji value={textMessage} onChange={setTextMessage}>
+                    </InputEmoji>
+                    <button className="send-btn" type="submit" onClick={() => sendTextMessage(textMessage, user, currentChat._id, setTextMessage)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-send-fill" viewBox="0 0 16 16">
+                            <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
+                        </svg>
+                    </button>
+                </Stack>
+            </Stack>
+        </>
+    )
+}
+
+```
+
+
+Working on notification, when user sends message we can also take care of notifications.
+2 things, 
+if currentChat is not open we need to have count(is Read is false)
+if chat is open we dont want notification to make count.(is Read is true);
+
+
+Notification object will contain data 
+
+{
+    senderId : message.senderId,
+    isRead : false,
+    date : new Date()
+};
+
+```js 
+// Socket index.js
+const { Server } = require("socket.io");
+
+// Create a new instance of Socket.io server with CORS configuration
+const io = new Server({ cors: "http://localhost:5173" });
+let onlineUsers = [];
+
+// Listen for new connections
+io.on("connection", (socket) => {
+    console.log("new Connection", socket.id);
+
+    // Listen to connection (Custom)
+    socket.on("addNewUser", (userId) => {
+        // Include users that are not already present
+        !onlineUsers.some((user) => user.userId === userId) &&
+            onlineUsers.push({
+                userId,
+                socketId: socket.id
+            });
+
+        console.log("OnlineUsers", onlineUsers);
+
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+
+    //add message
+    socket.on("sendMessage",(message) => {
+        const user = onlineUsers.find((user) => user.userId === message.recipientId);
+
+        if(user){
+            io.to(user.socketId).emit("getMessage",message);
+            io.to(user.socketId).emit("getNotification", {
+                senderId : message.senderId,
+                isRead : false,
+                date : new Date()
+            });
+        }
+    })
+
+    socket.on("disconnect", () => {
+        onlineUsers = onlineUsers.filter((user) => user.socketId !== socket.id);
+        io.emit("getOnlineUsers", onlineUsers);
+    });
+});
+
+// Start the Socket.io server on port 3000
+io.listen(3000);
+
+```
+
+```js 
+//ChatContext.jsx
+import { createContext, useCallback, useEffect, useState } from 'react';
+import { baseUrl, getRequest, postRequest } from '../utils/services';
+import { io } from "socket.io-client";
+
+export const ChatContext = createContext();
+
+
+export const ChatContextProvider = ({ children, user }) => {
+    const [userChats, setUserChats] = useState(null);
+    const [userChatsError, setUserChatsError] = useState(null);
+    const [isUserChatsLoading, setIsUserChatsLoading] = useState(false);
+
+    const [potentialChats, setPotentialChats] = useState([]);
+
+    const [currentChat, setCurrentChat] = useState(null);
+
+    const [messages, setMessages] = useState(null);
+    const [messagesError, setMessagesError] = useState(null);
+    const [isMessageLoading, setIsMessageLoading] = useState(false);
+
+    const [sendTextMessageError, setSendTextMessageError] = useState(null);
+    const [newMessage, setNewMessage] = useState(null);
+
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    console.log("onlineUsers", onlineUsers);
+
+    const [notifications, setNotifications] = useState([]);
+    console.log("notifications", notifications);
+
+    // Establish a socket connection when the component mounts
+    useEffect(() => {
+        const newSocket = io("http://localhost:3000");
+        setSocket(newSocket);
+
+        return () => {
+            newSocket.disconnect();
+        }
+    }, [user]);
+
+
+    //add Online Users
+    useEffect(() => {
+        if (socket === null) return;
+        socket.emit("addNewUser", user?._id);
+        socket.on("getOnlineUsers", (res) => {
+            setOnlineUsers(res);
+        })
+
+        return () => {
+            socket.off("getOnlineUsers");
+        }
+    }, [socket]);
+
+    //send Message(socket.io)
+    useEffect(() => {
+        if (socket === null) return;
+        const recipientId = currentChat?.members.find((id) => id !== user?._id);
+        socket.emit("sendMessage", { ...newMessage, recipientId })
+    }, [newMessage]);
+
+    //recieve Message (socket.io) & Notification
+    useEffect(() => {
+        if (socket === null) return;
+        socket.on("getMessage", res => {
+            if (currentChat?._id !== res.chatId) return; //Avoid updating to unknown chat
+            setMessages((prev) => [...prev, res]);
+        });
+
+        socket.on("getNotification", (res) => {
+            const isChatOpen = currentChat?.members.some((id) => id === res.senderId);
+
+            if (isChatOpen) {
+                setNotifications((prev) => [...prev, { ...res, isRead: true }]);
+            } else {
+                setNotifications((prev) => [...prev, res]);
+            }
+
+        })
+
+        return () => {
+            socket.off("getMessage");
+            socket.off("getNofication");
+        }
+    }, [socket, currentChat]);
+
+
+
+
+
+
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                // localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user]);
+
+    //We are trying to get the potential users other than the current Logged in User.
+    useEffect(() => {
+        const getUsers = async () => {
+            const response = await getRequest(`${baseUrl}/user/getUsers`);
+
+            if (response.error) {
+                return console.log("Error Fetching Users", response); //TODO
+            }
+
+            const potentialUsers = response.filter((u) => {
+                if (user?._id === u._id) return false; //Exclude current logged in
+                let isChatCreated = false;
+
+                if (userChats) {
+                    isChatCreated = userChats?.some((chat) => {
+                        return chat.members[0] === u._id || chat.members[1] === u._id;
+                    });
+                }
+                return !isChatCreated;
+            });
+            setPotentialChats(potentialUsers);
+        };
+
+        getUsers();
+    }, [userChats]);
+
+    //CreateChat when clicked on potential userList
+    const createChat = useCallback(async (firstId, secondId) => {
+        const response = await postRequest(`${baseUrl}/chats/`, JSON.stringify({
+            firstId, secondId
+        }));
+
+        if (response.error) {
+            return console.log("Error creating Chat", response); //TODO
+        }
+
+        setUserChats((prev) => [...prev, response]);
+    }, []);
+
+
+    const updateCurrentChat = (chat) => {
+        setCurrentChat(chat);
+    };
+
+    //Get Messages
+    useEffect(() => {
+        const getMessages = async () => {
+
+            setIsMessageLoading(true);
+            setMessagesError(null);
+
+            const response = await getRequest(`${baseUrl}/message/${currentChat?._id}`);
+
+            setIsMessageLoading(false);
+
+            if (response.error) {
+                return setMessagesError(response);
+            }
+
+            setMessages(response);
+
+        }
+
+        getMessages();
+    }, [currentChat]);
+
+    const sendTextMessage = useCallback(async (textMessage, sender, currentChatId, setTextMessage) => {
+        if (!textMessage) return null;
+        const response = await postRequest(`${baseUrl}/message`, JSON.stringify({
+            chatId: currentChatId,
+            senderId: sender._id,
+            text: textMessage
+        }));
+
+        if (response.error) {
+            return setSendTextMessageError(response);
+        }
+
+        setNewMessage(response);
+        setMessages((prev) => [...prev, response]);
+        setTextMessage("");
+
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers,notification }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+Working on Notification UI
+
+```js 
+//Notification.jsx 
+import React, { useState } from 'react'
+
+export const Notification = () => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+        <>
+            <div className='notifications'>
+                <div className="notifications-icon" onClick={() => setIsOpen(!isOpen)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-bell" viewBox="0 0 20 20">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+                    </svg>
+                </div>
+                {isOpen && <div className="notifications-box">
+                    <div className="notifications-header">
+                        <h6>Notifications</h6>
+                        <div className="mark-read">
+                            Mark all as read
+                        </div>
+                    </div>
+                </div>}
+            </div>
+        </>
+    )
+}
+
+```
+
+```js 
+import React, { useContext } from 'react'
+import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import pulseLogo from '../assets/pulseLogo.png'
+import { AuthContext } from '../context/AuthContext';
+import { Notification } from './Chats/Notification';
+
+export const NavBar = () => {
+    const { user, logoutUser } = useContext(AuthContext);
+
+    return (
+        <>
+            <Navbar border="success" className="mb-4 myCustomNavbar">
+                <Container>
+                    <Link to='/' className='text-decoration-none'>
+                        <h2 className='navBarHeading'>
+                            PulseChat
+                            <img src={pulseLogo} style={{ width: '45px' }}></img>
+                        </h2>
+                    </Link>
+                    {user && <span>Welcome, {user?.name}! 😎</span>}
+                    <Nav>
+                        <Notification></Notification> //change made here
+                        <Stack direction='horizontal' gap={3}>
+                            {user && (<>
+                                <Link onClick={() => logoutUser()} to='/login' className='text-decoration-none'>
+                                    <h6 className='navBarHeading '>
+                                        Logout
+                                    </h6>
+                                </Link>
+                            </>)}
+                            {!user && (
+                                <>
+                                    <Link to='/login' className='text-decoration-none'>
+                                        <h6 className='navBarHeading '>
+                                            Login
+                                        </h6>
+                                    </Link>
+                                    <Link to='/register' className='text-decoration-none'>
+                                        <h6 className='navBarHeading'>
+                                            Register
+                                        </h6>
+                                    </Link>
+                                </>
+                            )}
+                        </Stack>
+                    </Nav>
+                </Container>
+            </Navbar>
+        </>
+    )
+}
+
+```
+
+Now we need to know which notification are read and not read.
+
+so we need to have info on notification whose sent and is it read or not
+
+```js 
+//Notification.jsx 
+import React, { useContext, useState } from 'react'
+import { ChatContext } from '../../context/ChatContext';
+import { AuthContext } from '../../context/AuthContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+
+export const Notification = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const { user } = useContext(AuthContext);
+    const { notifications, userChats, allUsers } = useContext(ChatContext); //Alluser was not added before. Now its added in ChatContext.
+
+    const unreadNotifications = unreadNotificationsFunc(notifications);
+    const modifiedNotifications = notifications.map((n) => {
+        const sender = allUsers.find((user) => user?._id === n.senderId);
+
+        return ({
+            ...n,
+            senderName: sender?.name,
+        });
+    });
+
+    console.log("unreadNotifications", unreadNotifications);
+    console.log("modifiedNotifications", modifiedNotifications);
+
+    return (
+        <>
+            <div className='notifications'>
+                <div className="notifications-icon" onClick={() => setIsOpen(!isOpen)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-bell" viewBox="0 0 20 20">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+                    </svg>
+                </div>
+                {isOpen && <div className="notifications-box">
+                    <div className="notifications-header">
+                        <h6>Notifications</h6>
+                        <div className="mark-read">
+                            Mark all as read
+                        </div>
+                    </div>
+                </div>}
+            </div>
+        </>
+    )
+}
+
+```
+
+```js 
+//utils unReadNotification.js
+export const unreadNotificationsFunc = (notifications) => {
+    return notifications.filter((n) => n.isRead === false
+    );
+}
+```
+
+
+whenever we get new message we add it in notifications,
+Also each notification stack has different style, when you are in currentChat, you get notification,but the background is not higlighted, it meand you have read the message.
+
+```js 
+//Notification.jsx 
+import React, { useContext, useState } from 'react'
+import { ChatContext } from '../../context/ChatContext';
+import { AuthContext } from '../../context/AuthContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+import moment from 'moment';
+
+export const Notification = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const { user } = useContext(AuthContext);
+    const { notifications, userChats, allUsers } = useContext(ChatContext);
+
+    const unreadNotifications = unreadNotificationsFunc(notifications);
+    const modifiedNotifications = notifications.map((n) => {
+        const sender = allUsers.find((user) => user?._id === n.senderId);
+
+        return ({
+            ...n,
+            senderName: sender?.name,
+        });
+    });
+
+    console.log("unreadNotifications", unreadNotifications);
+    console.log("modifiedNotifications", modifiedNotifications);
+
+    return (
+        <>
+            <div className='notifications'>
+                <div className="notifications-icon" onClick={() => setIsOpen(!isOpen)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-bell" viewBox="0 0 20 20">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+                    </svg>
+                    {unreadNotifications?.length === 0 ? null : (
+                        <span className="notification-count">
+                            <span>{unreadNotifications.length}</span>
+                        </span>
+                    )}
+                </div>
+                {isOpen &&
+                    <div className="notifications-box">
+                        <div className="notifications-header">
+                            <h6>Notifications</h6>
+                            <div className="mark-read">
+                                Mark all as read
+                            </div>
+                        </div>
+                        {modifiedNotifications?.length === 0 ?
+                            <span className="notification">No notifications yet..</span>
+                            : null}
+                        {modifiedNotifications && modifiedNotifications.map((n, index) => {
+                            return (
+                                <>
+                                    <div key={index} className={n.isRead ? "notification" : "notification not-read"}>
+                                        <span>
+                                            {`${n.senderName} sent you a new message `}
+                                        </span>
+                                        <span className="notification-time">
+                                            {moment(n.date).calendar()}
+                                        </span>
+                                    </div>
+                                </>
+                            )
+                        })}
+                    </div>}
+            </div>
+        </>
+    )
+}
+
+```
+
+Now when i click on notification it should open chat and making all notification as read
+
+
+```js 
+.
+.
+.
+
+//chatContext.js
+  //Notifications
+
+    const markAllNotificationsAsRead = useCallback((notifications) => {
+        const mNotifications = notifications.map((n) => {
+            return { ...n, isRead: true }
+        });
+        setNotifications(mNotifications);
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers, notifications, allUsers, markAllNotificationsAsRead }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+```
+
+``` js
+//Notification.jsx 
+import React, { useContext, useState } from 'react'
+import { ChatContext } from '../../context/ChatContext';
+import { AuthContext } from '../../context/AuthContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+import moment from 'moment';
+
+export const Notification = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const { user } = useContext(AuthContext);
+    const { notifications, userChats, allUsers, markAllNotificationsAsRead } = useContext(ChatContext);
+
+    const unreadNotifications = unreadNotificationsFunc(notifications);
+    const modifiedNotifications = notifications.map((n) => {
+        const sender = allUsers.find((user) => user?._id === n.senderId);
+
+        return ({
+            ...n,
+            senderName: sender?.name,
+        });
+    });
+
+    console.log("unreadNotifications", unreadNotifications);
+    console.log("modifiedNotifications", modifiedNotifications);
+
+    return (
+        <>
+            <div className='notifications'>
+                <div className="notifications-icon" onClick={() => setIsOpen(!isOpen)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-bell-fill" viewBox="0 0 20 20">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z" />
+                    </svg>
+                    {unreadNotifications?.length === 0 ? null : (
+                        <span className="notification-count">
+                            <span>{unreadNotifications.length}</span>
+                        </span>
+                    )}
+                </div>
+                {isOpen &&
+                    <div className="notifications-box">
+                        <div className="notifications-header">
+                            <h6>Notifications</h6>
+                            <div className="mark-as-read" onClick={() => markAllNotificationsAsRead(notifications)}> //changes here
+                                Mark all as read
+                            </div>
+                        </div>
+                        {modifiedNotifications?.length === 0 ?
+                            <span className="notification">No notifications yet..</span>
+                            : null}
+                        {modifiedNotifications && modifiedNotifications.map((n, index) => {
+                            return (
+                                <>
+                                    <div key={index} className={n.isRead ? "notification" : "notification not-read"}>
+                                        <span>
+                                            {`${n.senderName} sent you a new message `}
+                                        </span>
+                                        <span className="notification-time">
+                                            {moment(n.date).calendar()}
+                                        </span>
+                                    </div>
+                                </>
+                            )
+                        })}
+                    </div>}
+            </div>
+        </>
+    )
+}
+
+```
+
+Now the complex part, if clicked on notification it should open the chat and mark that paticular notification as read
+
+```js 
+//chatContext.js
+    .
+    .
+    .
+   //Notifications
+
+    const markAllNotificationsAsRead = useCallback((notifications) => {
+        const mNotifications = notifications.map((n) => {
+            return { ...n, isRead: true }
+        });
+        setNotifications(mNotifications);
+    }, []);
+
+
+    const markNotificationsAsRead = useCallback((n, notifications, userChats, user) => {
+        //find chat to open
+
+        const specificChat = userChats.find((chat) => {
+            const chatMembers = [user._id, n.senderId];
+            const isSpecificChat = chat?.members.every((member) => {
+                return chatMembers.includes(member);
+            });
+            return isSpecificChat;
+        });
+
+        //mark now notification as read
+
+        const mNotifications = notifications.map((el) => {
+            if (n.senderId === el.senderId) {
+                return { ...n, isRead: true };
+            } else {
+                return el;
+            }
+        });
+
+        updateCurrentChat(specificChat);
+        setNotifications(mNotifications);
+    }, [])
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers, notifications, allUsers, markAllNotificationsAsRead, markNotificationsAsRead }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+```
+
+```js 
+
+//Notification.jsx 
+import React, { useContext, useState } from 'react'
+import { ChatContext } from '../../context/ChatContext';
+import { AuthContext } from '../../context/AuthContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+import moment from 'moment';
+
+export const Notification = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const { user } = useContext(AuthContext);
+    const { notifications, userChats, allUsers, markAllNotificationsAsRead, markNotificationsAsRead } = useContext(ChatContext);
+
+    const unreadNotifications = unreadNotificationsFunc(notifications);
+    const modifiedNotifications = notifications.map((n) => {
+        const sender = allUsers.find((user) => user?._id === n.senderId);
+
+        return ({
+            ...n,
+            senderName: sender?.name,
+        });
+    });
+
+    console.log("unreadNotifications", unreadNotifications);
+    console.log("modifiedNotifications", modifiedNotifications);
+
+    return (
+        <>
+            <div className='notifications'>
+                <div className="notifications-icon" onClick={() => setIsOpen(!isOpen)}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-bell-fill" viewBox="0 0 20 20">
+                        <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2m.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z" />
+                    </svg>
+                    {unreadNotifications?.length === 0 ? null : (
+                        <span className="notification-count">
+                            <span>{unreadNotifications.length}</span>
+                        </span>
+                    )}
+                </div>
+                {isOpen &&
+                    <div className="notifications-box">
+                        <div className="notifications-header">
+                            <h6>Notifications</h6>
+                            <div className="mark-as-read" onClick={() => markAllNotificationsAsRead(notifications)}>
+                                Mark all as read
+                            </div>
+                        </div>
+                        {modifiedNotifications?.length === 0 ?
+                            <span className="notification">No notifications yet..</span>
+                            : null}
+                        {modifiedNotifications && modifiedNotifications.map((n, index) => {
+                            return (
+                                <>
+                                    <div key={index} className={n.isRead ? "notification" : "notification not-read"}
+                                        onClick={() => {
+                                            markNotificationsAsRead(n, notifications, userChats, user); setIsOpen(false)
+                                        }} > //here
+                                        <span>
+                                            {`${n.senderName} sent you a new message `}
+                                        </span>
+                                        <span className="notification-time">
+                                            {moment(n.date).calendar()}
+                                        </span>
+                                    </div>
+                                </>
+                            )
+                        })}
+                    </div>}
+            </div>
+        </>
+    )
+}
+
+```
+
+Now lets work on the userChats stack, where we need to see text messages, notification counts etc...
+
+getting the count
+
+```js 
+//UserChats.jsx
+
+import React, { useContext } from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Stack } from 'react-bootstrap';
+import avatar from '../../assets/avatar.svg'
+import { ChatContext } from '../../context/ChatContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+    const { onlineUsers, notifications } = useContext(ChatContext);
+
+    const isOnline = onlineUsers.some((user) => (user?.userId === recipientUser?._id));
+
+    //here
+    const unreadNotifications = unreadNotificationsFunc(notifications); //This will give allnotification counts, we need to get notification counts specific to sender
+
+    const thisUserNotifications = unreadNotifications?.filter((n) => {
+        return n.senderId === recipientUser?._id;
+    });
+
+    console.log("thisUserNotifications", thisUserNotifications);
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between" role="button">
+            <div className="d-flex">
+                <div className="me-2">
+                    <img src={avatar} style={{ width: '35px' }} />
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">TextMessage</div>
+                </div>
+            </div>
+            <div className="d-flex">
+                <div className="date">
+                    2022-11-24
+                    <div className={thisUserNotifications?.length > 0 ? "this-user-notifications" : ""}> //here
+                        {thisUserNotifications?.length > 0 ? thisUserNotifications?.length : ""}
+                    </div>
+                    <span className={isOnline ? "user-online" : "user-offline"}></span>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+
+
+Now if we get the count, when you click on that user, the notification next to userChats and at the bell should be removed for that specific user
+
+
+```js 
+
+    //Notifications
+
+    const markAllNotificationsAsRead = useCallback((notifications) => {
+        const mNotifications = notifications.map((n) => {
+            return { ...n, isRead: true }
+        });
+        setNotifications(mNotifications);
+    }, []);
+
+
+    const markNotificationsAsRead = useCallback((n, notifications, userChats, user) => {
+        //find chat to open
+
+        const specificChat = userChats.find((chat) => {
+            const chatMembers = [user._id, n.senderId];
+            const isSpecificChat = chat?.members.every((member) => {
+                return chatMembers.includes(member);
+            });
+            return isSpecificChat;
+        });
+
+        //mark now notification as read
+
+        const mNotifications = notifications.map((el) => {
+            if (n.senderId === el.senderId) {
+                return { ...n, isRead: true };
+            } else {
+                return el;
+            }
+        });
+
+        updateCurrentChat(specificChat);
+        setNotifications(mNotifications);
+    }, []);
+
+
+    const markThisUserNotificationAsRead = useCallback((thisUserNotifications,notifications) => {
+        //mark notifications as read
+
+        const mNotifications = notifications.map((el)=>{
+            let notification;
+            thisUserNotifications.forEach(n => {
+                if (n.senderId === el.senderId){
+                    notification = {...n, isRead : true};
+                }else{
+                    notification = el;
+                }
+            });
+            return notification;
+        });
+
+        setNotifications(mNotifications);
+    })
+
+    return (<>
+        <ChatContext.Provider value={{ userChats, userChatsError, isUserChatsLoading, potentialChats, createChat, updateCurrentChat, currentChat, messages, messagesError, isMessageLoading, sendTextMessage, onlineUsers, notifications, allUsers, markAllNotificationsAsRead, markNotificationsAsRead, markThisUserNotificationAsRead }}>
+            {children}
+        </ChatContext.Provider>
+    </>)
+
+}
+
+
+```
+
+```js 
+//UserChats.jsx
+
+import React, { useContext } from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Stack } from 'react-bootstrap';
+import avatar from '../../assets/avatar.svg'
+import { ChatContext } from '../../context/ChatContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+    const { onlineUsers, notifications, markThisUserNotificationAsRead } = useContext(ChatContext);
+
+    const isOnline = onlineUsers.some((user) => (user?.userId === recipientUser?._id));
+    const unreadNotifications = unreadNotificationsFunc(notifications); //This will give allnotification counts, we need to get notification counts specific to sender
+
+    const thisUserNotifications = unreadNotifications?.filter((n) => {
+        return n.senderId === recipientUser?._id;
+    });
+
+    console.log("thisUserNotifications", thisUserNotifications);
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between" role="button"
+            onClick={() => {
+                if (thisUserNotifications?.length !== 0) {
+                    markThisUserNotificationAsRead(thisUserNotifications, notifications);
+                }
+            }}> //here
+            <div className="d-flex">
+                <div className="me-2">
+                    <img src={avatar} style={{ width: '35px' }} />
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">TextMessage</div>
+                </div>
+            </div>
+            <div className="d-flex">
+                <div className="date">
+                    2022-11-24
+                    <div className={thisUserNotifications?.length > 0 ? "this-user-notifications" : ""}>
+                        {thisUserNotifications?.length > 0 ? thisUserNotifications?.length : ""}
+                    </div>
+                    <span className={isOnline ? "user-online" : "user-offline"}></span>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+Now we need to get the last message and display
+
+```js 
+// useFetchLatestMessage
+
+import { useContext, useEffect, useState } from "react"
+import { ChatContext } from "../context/ChatContext";
+import { baseUrl, getRequest } from '../utils/services';
+
+export const useFetchLatestMessage = (chat) => {
+    const {newMessage, notifications} = useContext(ChatContext);
+    const [latestMessage, setLatestMessage] = useState(null);
+
+
+
+    useEffect(() => {
+        const getMessages = async () => {
+            const response = await getRequest(`${baseUrl}/message/${chat?._id}`);
+
+            if (response.error) {
+                return console.log("Error in getting Messages...", error);
+            }
+
+            const lastMessage = response[response?.length - 1];
+
+            setLatestMessage(lastMessage);
+        };
+        getMessages();
+    }, [newMessage, notifications])
+    return { latestMessage };
+}   
+```
+
+
+```js 
+//UserChats.jsx
+
+import React, { useContext } from 'react'
+import { useFetchRecipient } from '../../hooks/useFetchRecipient'
+import { Stack } from 'react-bootstrap';
+import avatar from '../../assets/avatar.svg'
+import { ChatContext } from '../../context/ChatContext';
+import { unreadNotificationsFunc } from '../../utils/unReadNotification';
+import { useFetchLatestMessage } from '../../hooks/useFetchLatestMessage';
+import moment from 'moment';
+
+export const UserChats = ({ chat, user }) => {
+
+    const { recipientUser } = useFetchRecipient(chat, user);
+    const { onlineUsers, notifications, markThisUserNotificationAsRead } = useContext(ChatContext);
+
+    const isOnline = onlineUsers.some((user) => (user?.userId === recipientUser?._id));
+    const unreadNotifications = unreadNotificationsFunc(notifications); //This will give allnotification counts, we need to get notification counts specific to sender
+
+    const thisUserNotifications = unreadNotifications?.filter((n) => {
+        return n.senderId === recipientUser?._id;
+    });
+
+    const { latestMessage } = useFetchLatestMessage(chat);
+    console.log("latestMessage", latestMessage)
+
+    const truncateText = (text) => {
+        let shortText = text.substring(0, 20);
+
+        if (text.length > 20) {
+            shortText = shortText + "...";
+        };
+
+        return shortText;
+    }
+
+    console.log("recipientUser", recipientUser);
+    return (
+        <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between" role="button"
+            onClick={() => {
+                if (thisUserNotifications?.length !== 0) {
+                    markThisUserNotificationAsRead(thisUserNotifications, notifications);
+                }
+            }}>
+            <div className="d-flex">
+                <div className="me-2">
+                    <img src={avatar} style={{ width: '35px' }} />
+                </div>
+                <div className="text-content">
+                    <div className="name">{recipientUser?.name}</div>
+                    <div className="text-message">{latestMessage?.text &&
+                        <span>{truncateText(latestMessage?.text)}</span>}</div>
+                </div>
+            </div>
+            <div className="d-flex">
+                <div className="date">
+                    {moment(latestMessage?.createdAt).calendar()}
+                    <div className={thisUserNotifications?.length > 0 ? "this-user-notifications" : ""}>
+                        {thisUserNotifications?.length > 0 ? thisUserNotifications?.length : ""}
+                    </div>
+                    <span className={isOnline ? "user-online" : "user-offline"}></span>
+                </div>
+            </div>
+        </Stack>
+    )
+}
+
+```
+
+
+One small thing, if we get a new user message, we need to make it appear in userChats stack
+
+```js 
+//ChatContext
+
+    useEffect(() => {
+        const getUserChats = async () => {
+            if (user?._id) {
+                setIsUserChatsLoading(true);
+                setUserChatsError(null);
+
+                const response = await getRequest(`${baseUrl}/chats/${user?._id}`);
+
+                setIsUserChatsLoading(false);
+
+                if (response.error) {
+                    return setUserChatsError(response);
+                }
+
+                // localStorage.setItem('UserChats', JSON.stringify(response))
+                setUserChats(response);
+            }
+        }
+
+        getUserChats();
+    }, [user, notifications]); //Added Notifications as dependecy
+```
