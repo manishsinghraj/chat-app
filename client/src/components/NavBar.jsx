@@ -3,6 +3,7 @@ import { Container, Nav, Navbar, Stack } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import pulseLogo from '../assets/pulseLogo.png'
 import { AuthContext } from '../context/AuthContext';
+import { Notification } from './Chats/Notification';
 
 export const NavBar = () => {
     const { user, logoutUser } = useContext(AuthContext);
@@ -19,6 +20,7 @@ export const NavBar = () => {
                     </Link>
                     {user && <span>Welcome, {user?.name}! 😎</span>}
                     <Nav>
+                        <Notification></Notification>
                         <Stack direction='horizontal' gap={3}>
                             {user && (<>
                                 <Link onClick={() => logoutUser()} to='/login' className='text-decoration-none'>
