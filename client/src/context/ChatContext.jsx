@@ -32,7 +32,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
     // Establish a socket connection when the component mounts
     useEffect(() => {
-        const newSocket = io("http://localhost:3000");
+        const newSocket = io(import.meta.env.VITE_SOCKET_SERVER_HOST);
         setSocket(newSocket);
 
         return () => {
@@ -235,15 +235,15 @@ export const ChatContextProvider = ({ children, user }) => {
     }, []);
 
 
-    const markThisUserNotificationAsRead = useCallback((thisUserNotifications,notifications) => {
+    const markThisUserNotificationAsRead = useCallback((thisUserNotifications, notifications) => {
         //mark notifications as read
 
-        const mNotifications = notifications.map((el)=>{
+        const mNotifications = notifications.map((el) => {
             let notification;
             thisUserNotifications.forEach(n => {
-                if (n.senderId === el.senderId){
-                    notification = {...n, isRead : true};
-                }else{
+                if (n.senderId === el.senderId) {
+                    notification = { ...n, isRead: true };
+                } else {
                     notification = el;
                 }
             });

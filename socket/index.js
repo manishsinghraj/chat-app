@@ -1,8 +1,11 @@
 // Socket index.js
 const { Server } = require("socket.io");
+const dotenv = require('dotenv');
+dotenv.config();
+
 
 // Create a new instance of Socket.io server with CORS configuration
-const io = new Server({ cors: "http://localhost:5173" });
+const io = new Server({ cors: process.env.CLIENT_HOST });
 let onlineUsers = [];
 
 // Listen for new connections
@@ -44,4 +47,5 @@ io.on("connection", (socket) => {
 });
 
 // Start the Socket.io server on port 3000
-io.listen(3000);
+const port = process.env.SOCKET_IO_PORT || 3000;
+io.listen(port);
