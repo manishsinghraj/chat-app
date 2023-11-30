@@ -149,7 +149,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
     // Establish a socket connection when the component mounts
     useEffect(() => {
-        const newSocket = io("http://localhost:3000");
+        const newSocket = io(import.meta.env.VITE_SOCKET_SERVER_HOST);
         setSocket(newSocket);
 
         return () => {
