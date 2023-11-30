@@ -21,7 +21,6 @@ export const AuthContextProvider = ({ children }) => {
 
     const [registerInfo, setRegisterInfo] = useState(register)
 
-    console.log("Userr", user);
 
     const updateRegisterInfo = useCallback((info) => {
         setRegisterInfo(info);
@@ -105,8 +104,6 @@ export const AuthContextProvider = ({ children }) => {
     //*****************************************************
 
 
-    console.log("registerInfo", registerInfo);
-    console.log("loginInfo", loginInfo);
 
     return (
         <AuthContext.Provider value={{ user, registerInfo, updateRegisterInfo, registerUser, registerError, isRegisterLoading, logoutUser, loginInfo, updateLoginInfo, loginUser, loginError, isLoginLoading }}>

@@ -19,7 +19,7 @@ export const ChatBox = () => {
     }, [messages])
 
     if (!recipientUser) return (
-        <p className="no-conversation-selected gradient-border" >No conversation  selected yet..</p>
+        <p className="no-conversation-selected gradient-border" >No conversation selected yet..</p>
     )
 
     if (isMessageLoading) return (

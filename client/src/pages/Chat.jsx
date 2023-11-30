@@ -12,7 +12,6 @@ export const Chat = () => {
   const { user } = useContext(AuthContext);
   const { userChats, userChatsError, isUserChatsLoading, updateCurrentChat } = useContext(ChatContext);
 
-  console.log(userChats, userChatsError, isUserChatsLoading);
   return (
     <>
       <Container>
@@ -31,7 +30,7 @@ export const Chat = () => {
               </Stack>
             </>
           }
-          <ChatBox/>
+          <ChatBox />
           <PotentialChats />
         </Stack>
       </Container>

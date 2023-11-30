@@ -19,9 +19,6 @@ export const Notification = () => {
         };
     });
 
-    console.log("unreadNotifications", unreadNotifications);
-    console.log("modifiedNotifications", modifiedNotifications);
-
     return (
         <>
             <div className='notifications'>

@@ -10,7 +10,7 @@ export const NavBar = () => {
 
     return (
         <>
-            <Navbar border="success" className="mb-4 myCustomNavbar">
+            <Navbar className="mb-4 myCustomNavbar">
                 <Container>
                     <Link to='/' className='text-decoration-none'>
                         <h2 className='navBarHeading'>
