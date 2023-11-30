@@ -1,5 +1,5 @@
 //services.js
-export const baseUrl = "http://localhost:5002/api";
+export const baseUrl = import.meta.env.VITE_BASE_URL || "http://localhost:5002/api";
 
 export const postRequest = async (url, body) => {
     const response = await fetch(url, {
@@ -23,7 +23,6 @@ export const postRequest = async (url, body) => {
 
         return { error: true, message };
     }
-
 
     return data;
 };

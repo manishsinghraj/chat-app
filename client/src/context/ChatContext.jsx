@@ -24,7 +24,7 @@ export const ChatContextProvider = ({ children, user }) => {
     const [newMessage, setNewMessage] = useState(null);
 
     const [notifications, setNotifications] = useState([]);
-    console.log("notifications", notifications);
+
    
 /* ******************************************************************************************** */
 
@@ -50,6 +50,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
         getUserChats();
     }, [user]);
+
 
     //We are trying to get the potential users other than the current Logged in User.
     useEffect(() => {
@@ -77,6 +78,7 @@ export const ChatContextProvider = ({ children, user }) => {
 
         getUsers();
     }, [userChats]);
+
 
     //CreateChat when clicked on potential userList
     const createChat = useCallback(async (firstId, secondId) => {
@@ -108,7 +110,6 @@ export const ChatContextProvider = ({ children, user }) => {
             }
 
             setMessages(response);
-
         }
 
         getMessages();
@@ -144,8 +145,6 @@ export const ChatContextProvider = ({ children, user }) => {
     //socket
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
-    console.log("onlineUsers", onlineUsers);
-
 
     // Establish a socket connection when the component mounts
     useEffect(() => {
@@ -171,6 +170,7 @@ export const ChatContextProvider = ({ children, user }) => {
         }
     }, [socket]);
 
+
     //send Message(socket.io)
     useEffect(() => {
         if (socket === null) return;
@@ -178,16 +178,18 @@ export const ChatContextProvider = ({ children, user }) => {
         socket.emit("sendMessage", { ...newMessage, recipientId })
     }, [newMessage]);
 
+
     //recieve Message (socket.io) & Notification
     useEffect(() => {
         if (socket === null) return;
+
+        // Register new listeners
         socket.on("getMessage", res => {
-            if (currentChat?._id !== res.chatId) return; //Avoid updating to unknown chat
+            if (currentChat?._id !== res.chatId) return; // Avoid updating to unknown chat
             setMessages((prev) => [...prev, res]);
         });
 
         socket.on("getNotification", (res) => {
-            console.log("currenttttt", currentChat);
             const isChatOpen = currentChat && currentChat.members.some((id) => id === res.senderId);
 
             setNotifications(prev => {
@@ -200,10 +202,12 @@ export const ChatContextProvider = ({ children, user }) => {
         });
 
         return () => {
-            socket.off("getNofication");
+            // Clear existing listeners
+            socket.off("getNotification");
             socket.off("getMessage");
-        }
-    }, [currentChat, socket]);
+        };
+    }, [socket, currentChat]);
+
 
 
     /* ******************************************************************************************** */
@@ -218,8 +222,8 @@ export const ChatContextProvider = ({ children, user }) => {
 
 
     const markNotificationsAsRead = useCallback((n, notifications, userChats, user) => {
-        //find chat to open
 
+        //find chat to open
         const specificChat = userChats.find((chat) => {
             const chatMembers = [user._id, n.senderId];
             const isSpecificChat = chat?.members.every((member) => {
@@ -229,7 +233,6 @@ export const ChatContextProvider = ({ children, user }) => {
         });
 
         //mark now notification as read
-
         const mNotifications = notifications.map((el) => {
             if (n.senderId === el.senderId) {
                 return { ...n, isRead: true };
@@ -243,8 +246,8 @@ export const ChatContextProvider = ({ children, user }) => {
 
 
     const markThisUserNotificationAsRead = useCallback((thisUserNotifications, notifications) => {
-        //mark notifications as read
 
+        //mark notifications as read
         const mNotifications = notifications.map((el) => {
             let notification;
             thisUserNotifications.forEach(n => {

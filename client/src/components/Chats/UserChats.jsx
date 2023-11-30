@@ -22,7 +22,6 @@ export const UserChats = ({ chat, user }) => {
     });
 
     const { latestMessage } = useFetchLatestMessage(chat);
-    console.log("latestMessage", latestMessage)
 
     const truncateText = (text) => {
         let shortText = text.substring(0, 20);
@@ -34,7 +33,6 @@ export const UserChats = ({ chat, user }) => {
         return shortText;
     }
 
-    console.log("recipientUser", recipientUser);
     return (
         <Stack direction="horizontal" gap={3} className="user-card align-item-center p-2 justify-content-between" role="button"
             onClick={() => {
