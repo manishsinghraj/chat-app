@@ -1,11 +1,9 @@
 // Socket index.js
 const { Server } = require("socket.io");
-const dotenv = require('dotenv');
-dotenv.config();
 
 
 // Create a new instance of Socket.io server with CORS configuration
-const io = new Server({ cors: process.env.CLIENT_HOST });
+const io = new Server({ cors: process.env.CLIENT_HOST || "http://localhost:5173" });
 let onlineUsers = [];
 
 // Listen for new connections
@@ -27,15 +25,15 @@ io.on("connection", (socket) => {
     });
 
     //add message
-    socket.on("sendMessage",(message) => {
+    socket.on("sendMessage", (message) => {
         const user = onlineUsers.find((user) => user.userId === message.recipientId);
 
-        if(user){
-            io.to(user.socketId).emit("getMessage",message);
+        if (user) {
+            io.to(user.socketId).emit("getMessage", message);
             io.to(user.socketId).emit("getNotification", {
-                senderId : message.senderId,
-                isRead : false,
-                date : new Date()
+                senderId: message.senderId,
+                isRead: false,
+                date: new Date()
             });
         }
     })
@@ -47,5 +45,4 @@ io.on("connection", (socket) => {
 });
 
 // Start the Socket.io server on port 3000
-const port = process.env.SOCKET_IO_PORT || 3000;
-io.listen(port);
+io.listen(process.env.SOCKET_IO_PORT || 3000);
