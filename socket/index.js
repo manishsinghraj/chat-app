@@ -1,8 +1,9 @@
 // Socket index.js
 const { Server } = require("socket.io");
 
+
 // Create a new instance of Socket.io server with CORS configuration
-const io = new Server({ cors: CLIENT_HOST || "http://localhost:5173" });
+const io = new Server({ cors: process.env.CLIENT_HOST || "http://localhost:5173" });
 let onlineUsers = [];
 
 // Listen for new connections
@@ -44,4 +45,4 @@ io.on("connection", (socket) => {
 });
 
 // Start the Socket.io server on port 3000
-io.listen(SOCKET_IO_PORT || 3000);
+io.listen(process.env.SOCKET_IO_PORT || 3000);
