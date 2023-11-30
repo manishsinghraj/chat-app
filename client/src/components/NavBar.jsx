@@ -20,9 +20,9 @@ export const NavBar = () => {
                     </Link>
                     {user && <span>Welcome, {user?.name}! 😎</span>}
                     <Nav>
-                        <Notification></Notification>
                         <Stack direction='horizontal' gap={3}>
                             {user && (<>
+                                <Notification></Notification>
                                 <Link onClick={() => logoutUser()} to='/login' className='text-decoration-none'>
                                     <h6 className='navBarHeading '>
                                         Logout

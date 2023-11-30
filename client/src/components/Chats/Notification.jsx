@@ -12,12 +12,11 @@ export const Notification = () => {
 
     const unreadNotifications = unreadNotificationsFunc(notifications);
     const modifiedNotifications = notifications.map((n) => {
-        const sender = allUsers.find((user) => user?._id === n.senderId);
-
-        return ({
+        const sender = allUsers.find(user => user?._id === n.senderId);
+        return {
             ...n,
             senderName: sender?.name,
-        });
+        };
     });
 
     console.log("unreadNotifications", unreadNotifications);

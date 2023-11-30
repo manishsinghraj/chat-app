@@ -13,6 +13,7 @@ export const ChatBox = () => {
     const [textMessage, setTextMessage] = useState("");
     const scroll = useRef();
 
+
     useEffect(() => {
         scroll.current?.scrollIntoView({ behaviour: "smooth" })
     }, [messages])
@@ -33,10 +34,16 @@ export const ChatBox = () => {
         <p>Oops Something went wrong!</p>
     )
 
+    const handleEnterKey = (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendTextMessage(textMessage, user, currentChat._id, setTextMessage);
+        }
+    };
 
-    console.log("recipientUser1", recipientUser);
-    console.log("currentChat1", currentChat);
-    console.log("user1", user);
+    const handleSendClick = () => {
+        sendTextMessage(textMessage, user, currentChat._id, setTextMessage);
+    };
 
     return (
         <>
@@ -55,9 +62,9 @@ export const ChatBox = () => {
                     })}
                 </Stack>
                 <Stack direction="horizontal" gap={3} className="chat-input flex-grow-0">
-                    <InputEmoji value={textMessage} onChange={setTextMessage}>
+                    <InputEmoji value={textMessage} onChange={setTextMessage} onKeyDown={handleEnterKey} shouldReturn >
                     </InputEmoji>
-                    <button className="send-btn" type="submit" onClick={() => sendTextMessage(textMessage, user, currentChat._id, setTextMessage)}>
+                    <button className="send-btn" type="submit" onClick={handleSendClick}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-send-fill" viewBox="0 0 16 16">
                             <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z" />
                         </svg>

@@ -137,10 +137,10 @@ body {
 .chat-box {
     max-height: calc(100vh - 10rem);
     min-width: calc(100vh - 10rem);
-    overflow-y: auto;
     background: var(--black);
     border-radius: 10px;
     border: 1px solid var(--white);
+    overflow-y: auto;
 }
 
 .no-conversation-selected {
@@ -203,10 +203,6 @@ body {
 
 
 
-
-
-
-
 /* Chat Header */
 .chat-header {
     display: flex;
@@ -227,6 +223,24 @@ body {
     font-weight: 500;
     margin-bottom: 1rem;
 }
+
+/* Custom scrollbar UI */
+.messages::-webkit-scrollbar {
+    width: 10px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background-color: var(--white);
+    border-radius: 5px;
+}
+
+.messages::-webkit-scrollbar-track {
+    background-color: var(--dark-blue-shade2);
+}
+
+/* .messages::-webkit-scrollbar {
+    display: none;
+} */
 
 .message {
     background: var(--grey-shade4);
@@ -268,7 +282,6 @@ body {
 /* Notification */
 .notifications {
     position: relative;
-
 }
 
 .notifications-icon {
@@ -287,6 +300,10 @@ body {
     border: 1px solid var(--white);
     border-radius: 12px 12px 3px 3px;
     z-index: 5;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    -ms-overflow-style: none;
 }
 
 .notifications-header {
@@ -297,11 +314,19 @@ body {
     border-bottom: 2px solid var(--white);
     border-radius: 12px 12px 0 0;
     background: var(--dark-blue-shade2);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    height: 3rem;
 }
 
 .notifications-box h6 {
     font-weight: 700;
     font-size: 15px;
+}
+
+.notifications-box::-webkit-scrollbar {
+    display: none;
 }
 
 .mark-as-read {

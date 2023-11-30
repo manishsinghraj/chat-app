@@ -1,6 +1,6 @@
 //utils unReadNotification.js
 export const unreadNotificationsFunc = (notifications) => {
-    return notifications.filter((n) => n.isRead === false
-    );
-
+    let filetredNotification = notifications.filter((n) => n.isRead === false);
+    console.log("filetredNotification", filetredNotification);
+    return filetredNotification;
 }
