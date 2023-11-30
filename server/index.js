@@ -19,6 +19,9 @@ app.use("/api/chats", chatRouter);
 app.use("/api/chats", chatRouter);
 app.use("/api/message", messageRouter);
 
+app.get('/', (req, res) => {
+  res.status(200).json('Welcome, to pulse chat');
+})
 
 app.listen(port, (req, res) => {
     console.log(`Server running on port ${port}`);
